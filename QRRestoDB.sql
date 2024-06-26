@@ -1,578 +1,204 @@
+-- Create Table: users
+-- This table stores information about users.
 CREATE TABLE users (
-    id UUID PRIMARY KEY,
-    name VARCHAR(255),
-    phone_number VARCHAR(15),
-    email VARCHAR(255) UNIQUE,
-    otp VARCHAR(10),
-    is_verified BOOLEAN,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP
+    id UUID PRIMARY KEY,                        -- Unique identifier for each user
+    name VARCHAR(255),                          -- Name of the user
+    phone_number VARCHAR(15),                   -- Phone number of the user
+    email VARCHAR(255) UNIQUE,                  -- Email of the user, must be unique
+    otp VARCHAR(10),                            -- One-time password for verification
+    is_verified BOOLEAN,                        -- Verification status of the user
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp when the user was created
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp when the user details were last updated
+    deleted_at TIMESTAMP                        -- Timestamp when the user was deleted (soft delete)
 );
 
+-- Create Table: restaurants
+-- This table stores information about restaurants.
 CREATE TABLE restaurants (
-    id UUID PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    logo_url VARCHAR(255),
-    opening_time TIMESTAMP,
-    closing_time TIMESTAMP,
-    status TEXT CHECK (status IN ('open', 'closed')),
-    operating_days JSONB,
-    phone_number VARCHAR(15),
-    email VARCHAR(255) UNIQUE,
-    encrypted_password TEXT NOT NULL,
-    password_hash TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP
+    id UUID PRIMARY KEY,                        -- Unique identifier for each restaurant
+    name VARCHAR(255) NOT NULL,                 -- Name of the restaurant, cannot be null
+    logo_url VARCHAR(255),                      -- URL of the restaurant's logo
+    opening_time TIMESTAMP,                     -- Opening time of the restaurant
+    closing_time TIMESTAMP,                     -- Closing time of the restaurant
+    status TEXT CHECK (status IN ('open', 'closed')), -- Status of the restaurant, must be 'open' or 'closed'
+    operating_days JSONB,                       -- JSONB field to store operating days
+    phone_number VARCHAR(15),                   -- Phone number of the restaurant
+    email VARCHAR(255) UNIQUE,                  -- Email of the restaurant, must be unique
+    encrypted_password TEXT NOT NULL,           -- Encrypted password of the restaurant's account
+    password_hash TEXT NOT NULL,                -- Hash of the restaurant's password
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp when the restaurant was created
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp when the restaurant details were last updated
+    deleted_at TIMESTAMP                        -- Timestamp when the restaurant was deleted (soft delete)
 );
 
+-- Create Table: menu
+-- This table stores information about menus of restaurants.
 CREATE TABLE menu (
-    id UUID PRIMARY KEY,
-    name VARCHAR(255),
-    restaurant_id UUID,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP,
-    FOREIGN KEY (restaurant_id) REFERENCES restaurants(id)
+    id UUID PRIMARY KEY,                        -- Unique identifier for each menu
+    name VARCHAR(255),                          -- Name of the menu
+    restaurant_id UUID,                         -- Identifier of the restaurant the menu belongs to
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp when the menu was created
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp when the menu was last updated
+    deleted_at TIMESTAMP,                       -- Timestamp when the menu was deleted (soft delete)
+    FOREIGN KEY (restaurant_id) REFERENCES restaurants(id) -- Foreign key constraint referencing restaurants table
 );
 
+-- Create Table: courses
+-- This table stores information about courses (meal courses) in restaurants.
 CREATE TABLE courses (
-    id UUID PRIMARY KEY,
-    name VARCHAR(255),
-    restaurant_id UUID,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP,
-    FOREIGN KEY (restaurant_id) REFERENCES restaurants(id)
+    id UUID PRIMARY KEY,                        -- Unique identifier for each course
+    name VARCHAR(255),                          -- Name of the course
+    restaurant_id UUID,                         -- Identifier of the restaurant the course belongs to
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp when the course was created
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp when the course was last updated
+    deleted_at TIMESTAMP,                       -- Timestamp when the course was deleted (soft delete)
+    FOREIGN KEY (restaurant_id) REFERENCES restaurants(id) -- Foreign key constraint referencing restaurants table
 );
 
+-- Create Table: food_items
+-- This table stores information about food items in the menu.
 CREATE TABLE food_items (
-    id UUID PRIMARY KEY,
-    custom_id VARCHAR(50),
-    name VARCHAR(255),
-    menu_id UUID,
-    restaurant_id UUID,
-    description TEXT,
-    price VARCHAR(50),
-    food_img_url VARCHAR(255),
-    dietary_restriction TEXT CHECK (dietary_restriction IN ('veg', 'non_veg', 'egg')),
-    is_featured BOOLEAN,
-    spicy_rating INT,
-    status TEXT CHECK (status IN ('in_stock', 'out_of_stock')),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP,
-    FOREIGN KEY (menu_id) REFERENCES menu(id),
-    FOREIGN KEY (restaurant_id) REFERENCES restaurants(id)
+    id UUID PRIMARY KEY,                        -- Unique identifier for each food item
+    custom_id VARCHAR(50),                      -- Custom identifier for the food item
+    name VARCHAR(255),                          -- Name of the food item
+    menu_id UUID,                               -- Identifier of the menu the food item belongs to
+    restaurant_id UUID,                         -- Identifier of the restaurant the food item belongs to
+    description TEXT,                           -- Description of the food item
+    price VARCHAR(50),                          -- Price of the food item
+    food_img_url VARCHAR(255),                  -- URL of the food item's image
+    dietary_restriction TEXT CHECK (dietary_restriction IN ('veg', 'non_veg', 'egg')), -- Dietary restriction of the food item
+    is_featured BOOLEAN,                        -- Indicates if the food item is featured
+    spicy_rating INT,                           -- Spicy rating of the food item
+    status TEXT CHECK (status IN ('in_stock', 'out_of_stock')), -- Stock status of the food item
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp when the food item was created
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp when the food item was last updated
+    deleted_at TIMESTAMP,                       -- Timestamp when the food item was deleted (soft delete)
+    FOREIGN KEY (menu_id) REFERENCES menu(id),  -- Foreign key constraint referencing menu table
+    FOREIGN KEY (restaurant_id) REFERENCES restaurants(id) -- Foreign key constraint referencing restaurants table
 );
 
+-- Create Table: food_item_courses
+-- This table stores the relationship between food items and courses.
 CREATE TABLE food_item_courses (
-    id UUID PRIMARY KEY,
-    name VARCHAR(255),
-    course_id UUID,
-    food_item_id UUID,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP,
-    FOREIGN KEY (course_id) REFERENCES courses(id),
-    FOREIGN KEY (food_item_id) REFERENCES food_items(id)
+    id UUID PRIMARY KEY,                        -- Unique identifier for each record
+    name VARCHAR(255),                          -- Name of the food item course relationship
+    course_id UUID,                             -- Identifier of the course
+    food_item_id UUID,                          -- Identifier of the food item
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp when the record was created
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp when the record was last updated
+    deleted_at TIMESTAMP,                       -- Timestamp when the record was deleted (soft delete)
+    FOREIGN KEY (course_id) REFERENCES courses(id), -- Foreign key constraint referencing courses table
+    FOREIGN KEY (food_item_id) REFERENCES food_items(id) -- Foreign key constraint referencing food_items table
 );
 
+-- Create Table: orders
+-- This table stores information about orders placed by users.
 CREATE TABLE orders (
-    id UUID PRIMARY KEY,
-    custom_order_id VARCHAR(12),
-    restaurant_id UUID,
-    user_id UUID,
-    total_amount VARCHAR(50),
-    table_id UUID,
-    invoice_url VARCHAR(255),
-    is_paid BOOLEAN,
-    status TEXT CHECK (status IN ('order_placed', 'confirmed', 'in_process', 'completed', 'deleted')),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP,
-    FOREIGN KEY (restaurant_id) REFERENCES restaurants(id),
-    FOREIGN KEY (user_id) REFERENCES users(id)
+    id UUID PRIMARY KEY,                        -- Unique identifier for each order
+    custom_order_id VARCHAR(12),                -- Custom identifier for the order
+    restaurant_id UUID,                         -- Identifier of the restaurant the order was placed at
+    user_id UUID,                               -- Identifier of the user who placed the order
+    total_amount VARCHAR(50),                   -- Total amount of the order
+    table_id UUID,                              -- Identifier of the table the order was placed at
+    invoice_url VARCHAR(255),                   -- URL of the order invoice
+    is_paid BOOLEAN,                            -- Indicates if the order has been paid
+    status TEXT CHECK (status IN ('order_placed', 'confirmed', 'in_process', 'completed', 'deleted')), -- Status of the order
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp when the order was created
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp when the order was last updated
+    deleted_at TIMESTAMP,                       -- Timestamp when the order was deleted (soft delete)
+    FOREIGN KEY (restaurant_id) REFERENCES restaurants(id), -- Foreign key constraint referencing restaurants table
+    FOREIGN KEY (user_id) REFERENCES users(id) -- Foreign key constraint referencing users table
 );
 
+-- Create Table: order_items
+-- This table stores information about individual items in an order.
 CREATE TABLE order_items (
-    id UUID PRIMARY KEY,
-    order_id UUID,
-    food_item_id UUID,
-    amount VARCHAR(50),
-    quantity INT,
-    status TEXT CHECK (status IN ('order_placed', 'confirmed', 'in_process', 'completed', 'deleted')),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP,
-    FOREIGN KEY (order_id) REFERENCES orders(id),
-    FOREIGN KEY (food_item_id) REFERENCES food_items(id)
+    id UUID PRIMARY KEY,                        -- Unique identifier for each order item
+    order_id UUID,                              -- Identifier of the order the item belongs to
+    food_item_id UUID,                          -- Identifier of the food item
+    amount VARCHAR(50),                         -- Amount of the order item
+    quantity INT,                               -- Quantity of the order item
+    status TEXT CHECK (status IN ('order_placed', 'confirmed', 'in_process', 'completed', 'deleted')), -- Status of the order item
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp when the order item was created
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp when the order item was last updated
+    deleted_at TIMESTAMP,                       -- Timestamp when the order item was deleted (soft delete)
+    FOREIGN KEY (order_id) REFERENCES orders(id), -- Foreign key constraint referencing orders table
+    FOREIGN KEY (food_item_id) REFERENCES food_items(id) -- Foreign key constraint referencing food_items table
 );
 
+-- Create Table: tables
+-- This table stores information about tables in restaurants.
 CREATE TABLE tables (
-    id UUID PRIMARY KEY,
-    name VARCHAR(255),
-    table_no VARCHAR(50),
-    restaurant_id UUID,
-    status TEXT CHECK (status IN ('occupied', 'available', 'reserved')),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP,
-    FOREIGN KEY (restaurant_id) REFERENCES restaurants(id)
+    id UUID PRIMARY KEY,                        -- Unique identifier for each table
+    name VARCHAR(255),                          -- Name of the table
+    table_no VARCHAR(50),                       -- Table number
+    restaurant_id UUID,                         -- Identifier of the restaurant the table belongs to
+    status TEXT CHECK (status IN ('occupied', 'available', 'reserved')), -- Status of the table
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp when the table was created
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp when the table was last updated
+    deleted_at TIMESTAMP,                       -- Timestamp when the table was deleted (soft delete)
+    FOREIGN KEY (restaurant_id) REFERENCES restaurants(id) -- Foreign key constraint referencing restaurants table
 );
 
-
+-- Create Table: feedbacks
+-- This table stores feedback given by users for orders.
 CREATE TABLE feedbacks (
-    id UUID PRIMARY KEY,
-    text TEXT,
-    restaurant_id UUID,
-    star_rating FLOAT,
-    user_id UUID,
-    order_id UUID,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP,
-    FOREIGN KEY (restaurant_id) REFERENCES restaurants(id),
-    FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (order_id) REFERENCES orders(id)
+    id UUID PRIMARY KEY,                        -- Unique identifier for each feedback
+    text TEXT,                                  -- Feedback text
+    restaurant_id UUID,                         -- Identifier of the restaurant the feedback is for
+    star_rating FLOAT,                          -- Star rating given in the feedback
+    user_id UUID,                               -- Identifier of the user who gave the feedback
+    order_id UUID,                              -- Identifier of the order the feedback is for
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp when the feedback was created
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp when the feedback was last updated
+    deleted_at TIMESTAMP,                       -- Timestamp when the feedback was deleted (soft delete)
+    FOREIGN KEY (restaurant_id) REFERENCES restaurants(id), -- Foreign key constraint referencing restaurants table
+    FOREIGN KEY (user_id) REFERENCES users(id), -- Foreign key constraint referencing users table
+    FOREIGN KEY (order_id) REFERENCES orders(id) -- Foreign key constraint referencing orders table
 );
 
+-- Create Table: sessions
+-- This table stores information about sessions in restaurants.
 CREATE TABLE sessions (
-    id UUID PRIMARY KEY,
-    session_id UUID,
-    restaurant_id UUID,
-    table_id UUID,
-    additional_note TEXT,
-    user_id UUID,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (restaurant_id) REFERENCES restaurants(id),
-    FOREIGN KEY (table_id) REFERENCES tables(id),
-    FOREIGN KEY (user_id) REFERENCES users(id)
+    id UUID PRIMARY KEY,                        -- Unique identifier for each session
+    session_id UUID,                            -- Identifier of the session
+    restaurant_id UUID,                         -- Identifier of the restaurant the session is for
+    table_id UUID,                              -- Identifier of the table the session is for
+    additional_note TEXT,                       -- Additional note for the session
+    user_id UUID,                               -- Identifier of the user the session is for
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp when the session was created
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp when the session was last updated
+    FOREIGN KEY (restaurant_id) REFERENCES restaurants(id), -- Foreign key constraint referencing restaurants table
+    FOREIGN KEY (table_id) REFERENCES tables(id), -- Foreign key constraint referencing tables table
+    FOREIGN KEY (user_id) REFERENCES users(id) -- Foreign key constraint referencing users table
 );
 
+-- Create Table: carts
+-- This table stores information about carts.
 CREATE TABLE carts (
-    id UUID PRIMARY KEY,
-    session_id UUID,
-    restaurant_id UUID,
-    table_id UUID,
-    additional_note TEXT,
-    user_id UUID,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (restaurant_id) REFERENCES restaurants(id),
-    FOREIGN KEY (table_id) REFERENCES tables(id),
-    FOREIGN KEY (user_id) REFERENCES users(id)
+    id UUID PRIMARY KEY,                        -- Unique identifier for each cart
+    session_id UUID,                            -- Identifier of the session the cart is for
+    restaurant_id UUID,                         -- Identifier of the restaurant the cart is for
+    table_id UUID,                              -- Identifier of the table the cart is for
+    additional_note TEXT,                       -- Additional note for the cart
+    user_id UUID,                               -- Identifier of the user the cart is for
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp when the cart was created
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp when the cart was last updated
+    FOREIGN KEY (restaurant_id) REFERENCES restaurants(id), -- Foreign key constraint referencing restaurants table
+    FOREIGN KEY (table_id) REFERENCES tables(id), -- Foreign key constraint referencing tables table
+    FOREIGN KEY (user_id) REFERENCES users(id) -- Foreign key constraint referencing users table
 );
 
+-- Create Table: cart_items
+-- This table stores information about individual items in a cart.
 CREATE TABLE cart_items (
-    id UUID PRIMARY KEY,
-    cart_id UUID,
-    food_item_id UUID,
-    instruction_note TEXT,
-    quantity INT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (cart_id) REFERENCES carts(id),
-    FOREIGN KEY (food_item_id) REFERENCES food_items(id)
+    id UUID PRIMARY KEY,                        -- Unique identifier for each cart item
+    cart_id UUID,                               -- Identifier of the cart the item belongs to
+    food_item_id UUID,                          -- Identifier of the food item
+    instruction_note TEXT,                      -- Instruction note for the cart item
+    quantity INT,                               -- Quantity of the cart item
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp when the cart item was created
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp when the cart item was last updated
+    FOREIGN KEY (cart_id) REFERENCES carts(id), -- Foreign key constraint referencing carts table
+    FOREIGN KEY (food_item_id) REFERENCES food_items(id) -- Foreign key constraint referencing food_items table
 );
-
-
-INSERT INTO users (id, name, phone_number, email, otp, is_verified, created_at, updated_at, deleted_at)
-VALUES
-('550e8400-e29b-41d4-a716-446655440000', 'John Doe', '1234567890', 'john.doe1@example.com', '1234', TRUE, NOW(), NOW(), NULL),
-('550e8400-e29b-41d4-a716-446655440001', 'Jane Smith', '0987654321', 'jane.smith1@example.com', '5678', TRUE, NOW(), NOW(), NULL),
-('550e8400-e29b-41d4-a716-446655440002', 'Alice Johnson', '1234509876', 'alice.johnson@example.com', '4321', FALSE, NOW(), NOW(), NULL),
-('550e8400-e29b-41d4-a716-446655440003', 'Bob Brown', '2345678901', 'bob.brown@example.com', '8765', TRUE, NOW(), NOW(), NULL),
-('550e8400-e29b-41d4-a716-446655440004', 'Charlie Black', '3456789012', 'charlie.black@example.com', '6543', FALSE, NOW(), NOW(), NULL),
-('550e8400-e29b-41d4-a716-446655440005', 'David White', '4567890123', 'david.white@example.com', '5432', TRUE, NOW(), NOW(), NULL),
-('550e8400-e29b-41d4-a716-446655440006', 'Eva Green', '5678901234', 'eva.green@example.com', '3210', FALSE, NOW(), NOW(), NULL),
-('550e8400-e29b-41d4-a716-446655440007', 'Frank Harris', '6789012345', 'frank.harris@example.com', '2109', TRUE, NOW(), NOW(), NULL),
-('550e8400-e29b-41d4-a716-446655440008', 'Grace Lee', '7890123456', 'grace.lee@example.com', '1098', TRUE, NOW(), NOW(), NULL),
-('550e8400-e29b-41d4-a716-446655440009', 'Hank Young', '8901234567', 'hank.young@example.com', '9876', FALSE, NOW(), NOW(), NULL),
-('550e8400-e29b-41d4-a716-446655440010', 'Ivy Clark', '9012345678', 'ivy.clark@example.com', '8765', TRUE, NOW(), NOW(), NULL),
-('550e8400-e29b-41d4-a716-446655440011', 'Jack Lewis', '0123456789', 'jack.lewis@example.com', '7654', FALSE, NOW(), NOW(), NULL),
-('550e8400-e29b-41d4-a716-446655440012', 'Karen Walker', '1234567809', 'karen.walker@example.com', '6543', TRUE, NOW(), NOW(), NULL),
-('550e8400-e29b-41d4-a716-446655440013', 'Leo King', '2345678901', 'leo.king@example.com', '5432', FALSE, NOW(), NOW(), NULL),
-('550e8400-e29b-41d4-a716-446655440014', 'Mona Scott', '3456789012', 'mona.scott@example.com', '4321', TRUE, NOW(), NOW(), NULL),
-('550e8400-e29b-41d4-a716-446655440015', 'Nate Parker', '4567890123', 'nate.parker@example.com', '3210', FALSE, NOW(), NOW(), NULL),
-('550e8400-e29b-41d4-a716-446655440016', 'Olivia Adams', '5678901234', 'olivia.adams@example.com', '2109', TRUE, NOW(), NOW(), NULL),
-('550e8400-e29b-41d4-a716-446655440017', 'Paul Roberts', '6789012345', 'paul.roberts@example.com', '1098', FALSE, NOW(), NOW(), NULL),
-('550e8400-e29b-41d4-a716-446655440018', 'Quinn Davis', '7890123456', 'quinn.davis@example.com', '9876', TRUE, NOW(), NOW(), NULL),
-('550e8400-e29b-41d4-a716-446655440019', 'Rachel Miller', '8901234567', 'rachel.miller@example.com', '8765', FALSE, NOW(), NOW(), NULL),
-('550e8400-e29b-41d4-a716-446655440020', 'Sam Wilson', '9012345678', 'sam.wilson@example.com', '7654', TRUE, NOW(), NOW(), NULL),
-('550e8400-e29b-41d4-a716-446655440021', 'Tina Brown', '0123456789', 'tina.brown@example.com', '6543', TRUE, NOW(), NOW(), NULL),
-('550e8400-e29b-41d4-a716-446655440022', 'Uma Green', '1234567890', 'uma.green@example.com', '5432', FALSE, NOW(), NOW(), NULL),
-('550e8400-e29b-41d4-a716-446655440023', 'Vince Clark', '2345678901', 'vince.clark@example.com', '4321', TRUE, NOW(), NOW(), NULL),
-('550e8400-e29b-41d4-a716-446655440024', 'Wendy King', '3456789012', 'wendy.king@example.com', '3210', FALSE, NOW(), NOW(), NULL),
-('550e8400-e29b-41d4-a716-446655440025', 'Xander Harris', '4567890123', 'xander.harris@example.com', '2109', TRUE, NOW(), NOW(), NULL),
-('550e8400-e29b-41d4-a716-446655440026', 'Yara Lee', '5678901234', 'yara.lee@example.com', '1098', FALSE, NOW(), NOW(), NULL),
-('550e8400-e29b-41d4-a716-446655440027', 'Zane Young', '6789012345', 'zane.young@example.com', '9876', TRUE, NOW(), NOW(), NULL),
-('550e8400-e29b-41d4-a716-446655440028', 'Amber Johnson', '7890123456', 'amber.johnson@example.com', '8765', FALSE, NOW(), NOW(), NULL),
-('550e8400-e29b-41d4-a716-446655440029', 'Brian White', '8901234567', 'brian.white@example.com', '7654', TRUE, NOW(), NOW(), NULL),
-('550e8400-e29b-41d4-a716-446655440030', 'Clara Black', '9012345678', 'clara.black@example.com', '6543', TRUE, NOW(), NOW(), NULL),
-('550e8400-e29b-41d4-a716-446655440031', 'Derek Lewis', '0123456789', 'derek.lewis@example.com', '5432', FALSE, NOW(), NOW(), NULL),
-('550e8400-e29b-41d4-a716-446655440032', 'Elena Walker', '1234567890', 'elena.walker@example.com', '4321', TRUE, NOW(), NOW(), NULL),
-('550e8400-e29b-41d4-a716-446655440033', 'Felix King', '2345678901', 'felix.king@example.com', '3210', FALSE, NOW(), NOW(), NULL),
-('550e8400-e29b-41d4-a716-446655440034', 'Gina Parker', '3456789012', 'gina.parker@example.com', '2109', TRUE, NOW(), NOW(), NULL),
-('550e8400-e29b-41d4-a716-446655440035', 'Hugo Adams', '4567890123', 'hugo.adams@example.com', '1098', FALSE, NOW(), NOW(), NULL),
-('550e8400-e29b-41d4-a716-446655440036', 'Isabel Roberts', '5678901234', 'isabel.roberts@example.com', '9876', TRUE, NOW(), NOW(), NULL),
-('550e8400-e29b-41d4-a716-446655440037', 'Jake Davis', '6789012345', 'jake.davis@example.com', '8765', FALSE, NOW(), NOW(), NULL),
-('550e8400-e29b-41d4-a716-446655440038', 'Kara Miller', '7890123456', 'kara.miller@example.com', '7654', TRUE, NOW(), NOW(), NULL),
-('550e8400-e29b-41d4-a716-446655440039', 'Liam Wilson', '8901234567', 'liam.wilson@example.com', '6543', TRUE, NOW(), NOW(), NULL);
-
-
-
-INSERT INTO restaurants (id, name, logo_url, opening_time, closing_time, status, operating_days, phone_number, email, encrypted_password, password_hash, created_at, updated_at, deleted_at)
-VALUES
-('a8098c1a-f86e-11da-bd1a-00112444be1e', 'Restaurant 1', 'http://logo.url/1.png', '2023-01-01 09:00:00', '2023-01-01 22:00:00', 'open', '{"Mon": "09:00-22:00", "Tue": "09:00-22:00"}', '1234567890', 'rest1@example.com', 'encrypted1', 'hash1', NOW(), NOW(), NULL),
-('a8098c1a-f86e-11da-bd1a-00112444be1f', 'Restaurant 2', 'http://logo.url/2.png', '2023-01-01 10:00:00', '2023-01-01 21:00:00', 'closed', '{"Wed": "10:00-21:00", "Thu": "10:00-21:00"}', '0987654321', 'rest2@example.com', 'encrypted2', 'hash2', NOW(), NOW(), NULL),
-('a8098c1a-f86e-11da-bd1a-00112444be20', 'Restaurant 3', 'http://logo.url/3.png', '2023-01-01 11:00:00', '2023-01-01 20:00:00', 'open', '{"Fri": "11:00-20:00", "Sat": "11:00-20:00"}', '2345678901', 'rest3@example.com', 'encrypted3', 'hash3', NOW(), NOW(), NULL),
-('a8098c1a-f86e-11da-bd1a-00112444be21', 'Restaurant 4', 'http://logo.url/4.png', '2023-01-01 08:00:00', '2023-01-01 19:00:00', 'closed', '{"Sun": "08:00-19:00", "Mon": "08:00-19:00"}', '3456789012', 'rest4@example.com', 'encrypted4', 'hash4', NOW(), NOW(), NULL),
-('a8098c1a-f86e-11da-bd1a-00112444be22', 'Restaurant 5', 'http://logo.url/5.png', '2023-01-01 12:00:00', '2023-01-01 18:00:00', 'open', '{"Tue": "12:00-18:00", "Wed": "12:00-18:00"}', '4567890123', 'rest5@example.com', 'encrypted5', 'hash5', NOW(), NOW(), NULL),
-('a8098c1a-f86e-11da-bd1a-00112444be23', 'Restaurant 6', 'http://logo.url/6.png', '2023-01-01 13:00:00', '2023-01-01 17:00:00', 'closed', '{"Thu": "13:00-17:00", "Fri": "13:00-17:00"}', '5678901234', 'rest6@example.com', 'encrypted6', 'hash6', NOW(), NOW(), NULL),
-('a8098c1a-f86e-11da-bd1a-00112444be24', 'Restaurant 7', 'http://logo.url/7.png', '2023-01-01 14:00:00', '2023-01-01 16:00:00', 'open', '{"Sat": "14:00-16:00", "Sun": "14:00-16:00"}', '6789012345', 'rest7@example.com', 'encrypted7', 'hash7', NOW(), NOW(), NULL),
-('a8098c1a-f86e-11da-bd1a-00112444be25', 'Restaurant 8', 'http://logo.url/8.png', '2023-01-01 15:00:00', '2023-01-01 15:00:00', 'closed', '{"Mon": "15:00-15:00", "Tue": "15:00-15:00"}', '7890123456', 'rest8@example.com', 'encrypted8', 'hash8', NOW(), NOW(), NULL),
-('a8098c1a-f86e-11da-bd1a-00112444be26', 'Restaurant 9', 'http://logo.url/9.png', '2023-01-01 16:00:00', '2023-01-01 14:00:00', 'open', '{"Wed": "16:00-14:00", "Thu": "16:00-14:00"}', '8901234567', 'rest9@example.com', 'encrypted9', 'hash9', NOW(), NOW(), NULL),
-('a8098c1a-f86e-11da-bd1a-00112444be27', 'Restaurant 10', 'http://logo.url/10.png', '2023-01-01 17:00:00', '2023-01-01 13:00:00', 'closed', '{"Fri": "17:00-13:00", "Sat": "17:00-13:00"}', '9012345678', 'rest10@example.com', 'encrypted10', 'hash10', NOW(), NOW(), NULL),
-('a8098c1a-f86e-11da-bd1a-00112444be28', 'Restaurant 11', 'http://logo.url/11.png', '2023-01-01 18:00:00', '2023-01-01 12:00:00', 'open', '{"Sun": "18:00-12:00", "Mon": "18:00-12:00"}', '0123456789', 'rest11@example.com', 'encrypted11', 'hash11', NOW(), NOW(), NULL),
-('a8098c1a-f86e-11da-bd1a-00112444be29', 'Restaurant 12', 'http://logo.url/12.png', '2023-01-01 19:00:00', '2023-01-01 11:00:00', 'closed', '{"Tue": "19:00-11:00", "Wed": "19:00-11:00"}', '1234567809', 'rest12@example.com', 'encrypted12', 'hash12', NOW(), NOW(), NULL),
-('a8098c1a-f86e-11da-bd1a-00112444be2a', 'Restaurant 13', 'http://logo.url/13.png', '2023-01-01 20:00:00', '2023-01-01 10:00:00', 'open', '{"Thu": "20:00-10:00", "Fri": "20:00-10:00"}', '2345678901', 'rest13@example.com', 'encrypted13', 'hash13', NOW(), NOW(), NULL),
-('a8098c1a-f86e-11da-bd1a-00112444be2b', 'Restaurant 14', 'http://logo.url/14.png', '2023-01-01 21:00:00', '2023-01-01 09:00:00', 'closed', '{"Sat": "21:00-09:00", "Sun": "21:00-09:00"}', '3456789012', 'rest14@example.com', 'encrypted14', 'hash14', NOW(), NOW(), NULL),
-('a8098c1a-f86e-11da-bd1a-00112444be2c', 'Restaurant 15', 'http://logo.url/15.png', '2023-01-01 22:00:00', '2023-01-01 08:00:00', 'open', '{"Mon": "22:00-08:00", "Tue": "22:00-08:00"}', '4567890123', 'rest15@example.com', 'encrypted15', 'hash15', NOW(), NOW(), NULL),
-('a8098c1a-f86e-11da-bd1a-00112444be2d', 'Restaurant 16', 'http://logo.url/16.png', '2023-01-01 07:00:00', '2023-01-01 07:00:00', 'closed', '{"Wed": "07:00-07:00", "Thu": "07:00-07:00"}', '5678901234', 'rest16@example.com', 'encrypted16', 'hash16', NOW(), NOW(), NULL),
-('a8098c1a-f86e-11da-bd1a-00112444be2e', 'Restaurant 17', 'http://logo.url/17.png', '2023-01-01 06:00:00', '2023-01-01 06:00:00', 'open', '{"Fri": "06:00-06:00", "Sat": "06:00-06:00"}', '6789012345', 'rest17@example.com', 'encrypted17', 'hash17', NOW(), NOW(), NULL),
-('a8098c1a-f86e-11da-bd1a-00112444be2f', 'Restaurant 18', 'http://logo.url/18.png', '2023-01-01 05:00:00', '2023-01-01 05:00:00', 'closed', '{"Sun": "05:00-05:00", "Mon": "05:00-05:00"}', '7890123456', 'rest18@example.com', 'encrypted18', 'hash18', NOW(), NOW(), NULL),
-('a8098c1a-f86e-11da-bd1a-00112444be30', 'Restaurant 19', 'http://logo.url/19.png', '2023-01-01 04:00:00', '2023-01-01 04:00:00', 'open', '{"Tue": "04:00-04:00", "Wed": "04:00-04:00"}', '8901234567', 'rest19@example.com', 'encrypted19', 'hash19', NOW(), NOW(), NULL),
-('a8098c1a-f86e-11da-bd1a-00112444be31', 'Restaurant 20', 'http://logo.url/20.png', '2023-01-01 03:00:00', '2023-01-01 03:00:00', 'closed', '{"Thu": "03:00-03:00", "Fri": "03:00-03:00"}', '9012345678', 'rest20@example.com', 'encrypted20', 'hash20', NOW(), NOW(), NULL),
-('a8098c1a-f86e-11da-bd1a-00112444be32', 'Restaurant 21', 'http://logo.url/21.png', '2023-01-01 02:00:00', '2023-01-01 02:00:00', 'open', '{"Sat": "02:00-02:00", "Sun": "02:00-02:00"}', '0123456789', 'rest21@example.com', 'encrypted21', 'hash21', NOW(), NOW(), NULL),
-('a8098c1a-f86e-11da-bd1a-00112444be33', 'Restaurant 22', 'http://logo.url/22.png', '2023-01-01 01:00:00', '2023-01-01 01:00:00', 'closed', '{"Mon": "01:00-01:00", "Tue": "01:00-01:00"}', '1234567809', 'rest22@example.com', 'encrypted22', 'hash22', NOW(), NOW(), NULL),
-('a8098c1a-f86e-11da-bd1a-00112444be34', 'Restaurant 23', 'http://logo.url/23.png', '2023-01-01 00:00:00', '2023-01-01 00:00:00', 'open', '{"Wed": "00:00-00:00", "Thu": "00:00-00:00"}', '2345678901', 'rest23@example.com', 'encrypted23', 'hash23', NOW(), NOW(), NULL),
-('a8098c1a-f86e-11da-bd1a-00112444be35', 'Restaurant 24', 'http://logo.url/24.png', '2023-01-01 23:00:00', '2023-01-01 23:00:00', 'closed', '{"Fri": "23:00-23:00", "Sat": "23:00-23:00"}', '3456789012', 'rest24@example.com', 'encrypted24', 'hash24', NOW(), NOW(), NULL),
-('a8098c1a-f86e-11da-bd1a-00112444be36', 'Restaurant 25', 'http://logo.url/25.png', '2023-01-01 22:00:00', '2023-01-01 22:00:00', 'open', '{"Sun": "22:00-22:00", "Mon": "22:00-22:00"}', '4567890123', 'rest25@example.com', 'encrypted25', 'hash25', NOW(), NOW(), NULL),
-('a8098c1a-f86e-11da-bd1a-00112444be37', 'Restaurant 26', 'http://logo.url/26.png', '2023-01-01 21:00:00', '2023-01-01 21:00:00', 'closed', '{"Tue": "21:00-21:00", "Wed": "21:00-21:00"}', '5678901234', 'rest26@example.com', 'encrypted26', 'hash26', NOW(), NOW(), NULL),
-('a8098c1a-f86e-11da-bd1a-00112444be38', 'Restaurant 27', 'http://logo.url/27.png', '2023-01-01 20:00:00', '2023-01-01 20:00:00', 'open', '{"Thu": "20:00-20:00", "Fri": "20:00-20:00"}', '6789012345', 'rest27@example.com', 'encrypted27', 'hash27', NOW(), NOW(), NULL),
-('a8098c1a-f86e-11da-bd1a-00112444be39', 'Restaurant 28', 'http://logo.url/28.png', '2023-01-01 19:00:00', '2023-01-01 19:00:00', 'closed', '{"Sat": "19:00-19:00", "Sun": "19:00-19:00"}', '7890123456', 'rest28@example.com', 'encrypted28', 'hash28', NOW(), NOW(), NULL),
-('a8098c1a-f86e-11da-bd1a-00112444be3a', 'Restaurant 29', 'http://logo.url/29.png', '2023-01-01 18:00:00', '2023-01-01 18:00:00', 'open', '{"Mon": "18:00-18:00", "Tue": "18:00-18:00"}', '8901234567', 'rest29@example.com', 'encrypted29', 'hash29', NOW(), NOW(), NULL),
-('a8098c1a-f86e-11da-bd1a-00112444be3b', 'Restaurant 30', 'http://logo.url/30.png', '2023-01-01 17:00:00', '2023-01-01 17:00:00', 'closed', '{"Wed": "17:00-17:00", "Thu": "17:00-17:00"}', '9012345678', 'rest30@example.com', 'encrypted30', 'hash30', NOW(), NOW(), NULL),
-('a8098c1a-f86e-11da-bd1a-00112444be3c', 'Restaurant 31', 'http://logo.url/31.png', '2023-01-01 16:00:00', '2023-01-01 16:00:00', 'open', '{"Fri": "16:00-16:00", "Sat": "16:00-16:00"}', '0123456789', 'rest31@example.com', 'encrypted31', 'hash31', NOW(), NOW(), NULL),
-('a8098c1a-f86e-11da-bd1a-00112444be3d', 'Restaurant 32', 'http://logo.url/32.png', '2023-01-01 15:00:00', '2023-01-01 15:00:00', 'closed', '{"Sun": "15:00-15:00", "Mon": "15:00-15:00"}', '1234567809', 'rest32@example.com', 'encrypted32', 'hash32', NOW(), NOW(), NULL),
-('a8098c1a-f86e-11da-bd1a-00112444be3e', 'Restaurant 33', 'http://logo.url/33.png', '2023-01-01 14:00:00', '2023-01-01 14:00:00', 'open', '{"Tue": "14:00-14:00", "Wed": "14:00-14:00"}', '2345678901', 'rest33@example.com', 'encrypted33', 'hash33', NOW(), NOW(), NULL),
-('a8098c1a-f86e-11da-bd1a-00112444be3f', 'Restaurant 34', 'http://logo.url/34.png', '2023-01-01 13:00:00', '2023-01-01 13:00:00', 'closed', '{"Thu": "13:00-13:00", "Fri": "13:00-13:00"}', '3456789012', 'rest34@example.com', 'encrypted34', 'hash34', NOW(), NOW(), NULL),
-('a8098c1a-f86e-11da-bd1a-00112444be40', 'Restaurant 35', 'http://logo.url/35.png', '2023-01-01 12:00:00', '2023-01-01 12:00:00', 'open', '{"Sat": "12:00-12:00", "Sun": "12:00-12:00"}', '4567890123', 'rest35@example.com', 'encrypted35', 'hash35', NOW(), NOW(), NULL),
-('a8098c1a-f86e-11da-bd1a-00112444be41', 'Restaurant 36', 'http://logo.url/36.png', '2023-01-01 11:00:00', '2023-01-01 11:00:00', 'closed', '{"Mon": "11:00-11:00", "Tue": "11:00-11:00"}', '5678901234', 'rest36@example.com', 'encrypted36', 'hash36', NOW(), NOW(), NULL),
-('a8098c1a-f86e-11da-bd1a-00112444be42', 'Restaurant 37', 'http://logo.url/37.png', '2023-01-01 10:00:00', '2023-01-01 10:00:00', 'open', '{"Wed": "10:00-10:00", "Thu": "10:00-10:00"}', '6789012345', 'rest37@example.com', 'encrypted37', 'hash37', NOW(), NOW(), NULL),
-('a8098c1a-f86e-11da-bd1a-00112444be43', 'Restaurant 38', 'http://logo.url/38.png', '2023-01-01 09:00:00', '2023-01-01 09:00:00', 'closed', '{"Fri": "09:00-09:00", "Sat": "09:00-09:00"}', '7890123456', 'rest38@example.com', 'encrypted38', 'hash38', NOW(), NOW(), NULL),
-('a8098c1a-f86e-11da-bd1a-00112444be44', 'Restaurant 39', 'http://logo.url/39.png', '2023-01-01 08:00:00', '2023-01-01 08:00:00', 'open', '{"Sun": "08:00-08:00", "Mon": "08:00-08:00"}', '8901234567', 'rest39@example.com', 'encrypted39', 'hash39', NOW(), NOW(), NULL),
-('a8098c1a-f86e-11da-bd1a-00112444be45', 'Restaurant 40', 'http://logo.url/40.png', '2023-01-01 07:00:00', '2023-01-01 07:00:00', 'closed', '{"Tue": "07:00-07:00", "Wed": "07:00-07:00"}', '9012345678', 'rest40@example.com', 'encrypted40', 'hash40', NOW(), NOW(), NULL);
-
-
-INSERT INTO menu (id, name, restaurant_id, created_at, updated_at, deleted_at)
-VALUES
-('b7098c1a-f86e-11da-bd1a-00112444be1e', 'Menu 1', 'a8098c1a-f86e-11da-bd1a-00112444be1e', NOW(), NOW(), NULL),
-('b7098c1a-f86e-11da-bd1a-00112444be1f', 'Menu 2', 'a8098c1a-f86e-11da-bd1a-00112444be1f', NOW(), NOW(), NULL),
-('b7098c1a-f86e-11da-bd1a-00112444be20', 'Menu 3', 'a8098c1a-f86e-11da-bd1a-00112444be20', NOW(), NOW(), NULL),
-('b7098c1a-f86e-11da-bd1a-00112444be21', 'Menu 4', 'a8098c1a-f86e-11da-bd1a-00112444be21', NOW(), NOW(), NULL),
-('b7098c1a-f86e-11da-bd1a-00112444be22', 'Menu 5', 'a8098c1a-f86e-11da-bd1a-00112444be22', NOW(), NOW(), NULL),
-('b7098c1a-f86e-11da-bd1a-00112444be23', 'Menu 6', 'a8098c1a-f86e-11da-bd1a-00112444be23', NOW(), NOW(), NULL),
-('b7098c1a-f86e-11da-bd1a-00112444be24', 'Menu 7', 'a8098c1a-f86e-11da-bd1a-00112444be24', NOW(), NOW(), NULL),
-('b7098c1a-f86e-11da-bd1a-00112444be25', 'Menu 8', 'a8098c1a-f86e-11da-bd1a-00112444be25', NOW(), NOW(), NULL),
-('b7098c1a-f86e-11da-bd1a-00112444be26', 'Menu 9', 'a8098c1a-f86e-11da-bd1a-00112444be26', NOW(), NOW(), NULL),
-('b7098c1a-f86e-11da-bd1a-00112444be27', 'Menu 10', 'a8098c1a-f86e-11da-bd1a-00112444be27', NOW(), NOW(), NULL),
-('b7098c1a-f86e-11da-bd1a-00112444be28', 'Menu 11', 'a8098c1a-f86e-11da-bd1a-00112444be28', NOW(), NOW(), NULL),
-('b7098c1a-f86e-11da-bd1a-00112444be29', 'Menu 12', 'a8098c1a-f86e-11da-bd1a-00112444be29', NOW(), NOW(), NULL),
-('b7098c1a-f86e-11da-bd1a-00112444be2a', 'Menu 13', 'a8098c1a-f86e-11da-bd1a-00112444be2a', NOW(), NOW(), NULL),
-('b7098c1a-f86e-11da-bd1a-00112444be2b', 'Menu 14', 'a8098c1a-f86e-11da-bd1a-00112444be2b', NOW(), NOW(), NULL),
-('b7098c1a-f86e-11da-bd1a-00112444be2c', 'Menu 15', 'a8098c1a-f86e-11da-bd1a-00112444be2c', NOW(), NOW(), NULL),
-('b7098c1a-f86e-11da-bd1a-00112444be2d', 'Menu 16', 'a8098c1a-f86e-11da-bd1a-00112444be2d', NOW(), NOW(), NULL),
-('b7098c1a-f86e-11da-bd1a-00112444be2e', 'Menu 17', 'a8098c1a-f86e-11da-bd1a-00112444be2e', NOW(), NOW(), NULL),
-('b7098c1a-f86e-11da-bd1a-00112444be2f', 'Menu 18', 'a8098c1a-f86e-11da-bd1a-00112444be2f', NOW(), NOW(), NULL),
-('b7098c1a-f86e-11da-bd1a-00112444be30', 'Menu 19', 'a8098c1a-f86e-11da-bd1a-00112444be30', NOW(), NOW(), NULL),
-('b7098c1a-f86e-11da-bd1a-00112444be31', 'Menu 20', 'a8098c1a-f86e-11da-bd1a-00112444be31', NOW(), NOW(), NULL),
-('b7098c1a-f86e-11da-bd1a-00112444be32', 'Menu 21', 'a8098c1a-f86e-11da-bd1a-00112444be32', NOW(), NOW(), NULL),
-('b7098c1a-f86e-11da-bd1a-00112444be33', 'Menu 22', 'a8098c1a-f86e-11da-bd1a-00112444be33', NOW(), NOW(), NULL),
-('b7098c1a-f86e-11da-bd1a-00112444be34', 'Menu 23', 'a8098c1a-f86e-11da-bd1a-00112444be34', NOW(), NOW(), NULL),
-('b7098c1a-f86e-11da-bd1a-00112444be35', 'Menu 24', 'a8098c1a-f86e-11da-bd1a-00112444be35', NOW(), NOW(), NULL),
-('b7098c1a-f86e-11da-bd1a-00112444be36', 'Menu 25', 'a8098c1a-f86e-11da-bd1a-00112444be36', NOW(), NOW(), NULL),
-('b7098c1a-f86e-11da-bd1a-00112444be37', 'Menu 26', 'a8098c1a-f86e-11da-bd1a-00112444be37', NOW(), NOW(), NULL),
-('b7098c1a-f86e-11da-bd1a-00112444be38', 'Menu 27', 'a8098c1a-f86e-11da-bd1a-00112444be38', NOW(), NOW(), NULL),
-('b7098c1a-f86e-11da-bd1a-00112444be39', 'Menu 28', 'a8098c1a-f86e-11da-bd1a-00112444be39', NOW(), NOW(), NULL),
-('b7098c1a-f86e-11da-bd1a-00112444be3a', 'Menu 29', 'a8098c1a-f86e-11da-bd1a-00112444be3a', NOW(), NOW(), NULL),
-('b7098c1a-f86e-11da-bd1a-00112444be3b', 'Menu 30', 'a8098c1a-f86e-11da-bd1a-00112444be3b', NOW(), NOW(), NULL),
-('b7098c1a-f86e-11da-bd1a-00112444be3c', 'Menu 31', 'a8098c1a-f86e-11da-bd1a-00112444be3c', NOW(), NOW(), NULL),
-('b7098c1a-f86e-11da-bd1a-00112444be3d', 'Menu 32', 'a8098c1a-f86e-11da-bd1a-00112444be3d', NOW(), NOW(), NULL),
-('b7098c1a-f86e-11da-bd1a-00112444be3e', 'Menu 33', 'a8098c1a-f86e-11da-bd1a-00112444be3e', NOW(), NOW(), NULL),
-('b7098c1a-f86e-11da-bd1a-00112444be3f', 'Menu 34', 'a8098c1a-f86e-11da-bd1a-00112444be3f', NOW(), NOW(), NULL),
-('b7098c1a-f86e-11da-bd1a-00112444be40', 'Menu 35', 'a8098c1a-f86e-11da-bd1a-00112444be40', NOW(), NOW(), NULL),
-('b7098c1a-f86e-11da-bd1a-00112444be41', 'Menu 36', 'a8098c1a-f86e-11da-bd1a-00112444be41', NOW(), NOW(), NULL),
-('b7098c1a-f86e-11da-bd1a-00112444be42', 'Menu 37', 'a8098c1a-f86e-11da-bd1a-00112444be42', NOW(), NOW(), NULL),
-('b7098c1a-f86e-11da-bd1a-00112444be43', 'Menu 38', 'a8098c1a-f86e-11da-bd1a-00112444be43', NOW(), NOW(), NULL),
-('b7098c1a-f86e-11da-bd1a-00112444be44', 'Menu 39', 'a8098c1a-f86e-11da-bd1a-00112444be44', NOW(), NOW(), NULL),
-('b7098c1a-f86e-11da-bd1a-00112444be45', 'Menu 40', 'a8098c1a-f86e-11da-bd1a-00112444be45', NOW(), NOW(), NULL);
-
-
-INSERT INTO courses (id, name, restaurant_id, created_at, updated_at, deleted_at)
-VALUES
-('c8098c1a-f86e-11da-bd1a-00112444be1e', 'Course 1', 'a8098c1a-f86e-11da-bd1a-00112444be1e', NOW(), NOW(), NULL),
-('c8098c1a-f86e-11da-bd1a-00112444be1f', 'Course 2', 'a8098c1a-f86e-11da-bd1a-00112444be1f', NOW(), NOW(), NULL),
-('c8098c1a-f86e-11da-bd1a-00112444be20', 'Course 3', 'a8098c1a-f86e-11da-bd1a-00112444be20', NOW(), NOW(), NULL),
-('c8098c1a-f86e-11da-bd1a-00112444be21', 'Course 4', 'a8098c1a-f86e-11da-bd1a-00112444be21', NOW(), NOW(), NULL),
-('c8098c1a-f86e-11da-bd1a-00112444be22', 'Course 5', 'a8098c1a-f86e-11da-bd1a-00112444be22', NOW(), NOW(), NULL),
-('c8098c1a-f86e-11da-bd1a-00112444be23', 'Course 6', 'a8098c1a-f86e-11da-bd1a-00112444be23', NOW(), NOW(), NULL),
-('c8098c1a-f86e-11da-bd1a-00112444be24', 'Course 7', 'a8098c1a-f86e-11da-bd1a-00112444be24', NOW(), NOW(), NULL),
-('c8098c1a-f86e-11da-bd1a-00112444be25', 'Course 8', 'a8098c1a-f86e-11da-bd1a-00112444be25', NOW(), NOW(), NULL),
-('c8098c1a-f86e-11da-bd1a-00112444be26', 'Course 9', 'a8098c1a-f86e-11da-bd1a-00112444be26', NOW(), NOW(), NULL),
-('c8098c1a-f86e-11da-bd1a-00112444be27', 'Course 10', 'a8098c1a-f86e-11da-bd1a-00112444be27', NOW(), NOW(), NULL),
-('c8098c1a-f86e-11da-bd1a-00112444be28', 'Course 11', 'a8098c1a-f86e-11da-bd1a-00112444be28', NOW(), NOW(), NULL),
-('c8098c1a-f86e-11da-bd1a-00112444be29', 'Course 12', 'a8098c1a-f86e-11da-bd1a-00112444be29', NOW(), NOW(), NULL),
-('c8098c1a-f86e-11da-bd1a-00112444be2a', 'Course 13', 'a8098c1a-f86e-11da-bd1a-00112444be2a', NOW(), NOW(), NULL),
-('c8098c1a-f86e-11da-bd1a-00112444be2b', 'Course 14', 'a8098c1a-f86e-11da-bd1a-00112444be2b', NOW(), NOW(), NULL),
-('c8098c1a-f86e-11da-bd1a-00112444be2c', 'Course 15', 'a8098c1a-f86e-11da-bd1a-00112444be2c', NOW(), NOW(), NULL),
-('c8098c1a-f86e-11da-bd1a-00112444be2d', 'Course 16', 'a8098c1a-f86e-11da-bd1a-00112444be2d', NOW(), NOW(), NULL),
-('c8098c1a-f86e-11da-bd1a-00112444be2e', 'Course 17', 'a8098c1a-f86e-11da-bd1a-00112444be2e', NOW(), NOW(), NULL),
-('c8098c1a-f86e-11da-bd1a-00112444be2f', 'Course 18', 'a8098c1a-f86e-11da-bd1a-00112444be2f', NOW(), NOW(), NULL),
-('c8098c1a-f86e-11da-bd1a-00112444be30', 'Course 19', 'a8098c1a-f86e-11da-bd1a-00112444be30', NOW(), NOW(), NULL),
-('c8098c1a-f86e-11da-bd1a-00112444be31', 'Course 20', 'a8098c1a-f86e-11da-bd1a-00112444be31', NOW(), NOW(), NULL),
-('c8098c1a-f86e-11da-bd1a-00112444be32', 'Course 21', 'a8098c1a-f86e-11da-bd1a-00112444be32', NOW(), NOW(), NULL),
-('c8098c1a-f86e-11da-bd1a-00112444be33', 'Course 22', 'a8098c1a-f86e-11da-bd1a-00112444be33', NOW(), NOW(), NULL),
-('c8098c1a-f86e-11da-bd1a-00112444be34', 'Course 23', 'a8098c1a-f86e-11da-bd1a-00112444be34', NOW(), NOW(), NULL),
-('c8098c1a-f86e-11da-bd1a-00112444be35', 'Course 24', 'a8098c1a-f86e-11da-bd1a-00112444be35', NOW(), NOW(), NULL),
-('c8098c1a-f86e-11da-bd1a-00112444be36', 'Course 25', 'a8098c1a-f86e-11da-bd1a-00112444be36', NOW(), NOW(), NULL),
-('c8098c1a-f86e-11da-bd1a-00112444be37', 'Course 26', 'a8098c1a-f86e-11da-bd1a-00112444be37', NOW(), NOW(), NULL),
-('c8098c1a-f86e-11da-bd1a-00112444be38', 'Course 27', 'a8098c1a-f86e-11da-bd1a-00112444be38', NOW(), NOW(), NULL),
-('c8098c1a-f86e-11da-bd1a-00112444be39', 'Course 28', 'a8098c1a-f86e-11da-bd1a-00112444be39', NOW(), NOW(), NULL),
-('c8098c1a-f86e-11da-bd1a-00112444be3a', 'Course 29', 'a8098c1a-f86e-11da-bd1a-00112444be3a', NOW(), NOW(), NULL),
-('c8098c1a-f86e-11da-bd1a-00112444be3b', 'Course 30', 'a8098c1a-f86e-11da-bd1a-00112444be3b', NOW(), NOW(), NULL),
-('c8098c1a-f86e-11da-bd1a-00112444be3c', 'Course 31', 'a8098c1a-f86e-11da-bd1a-00112444be3c', NOW(), NOW(), NULL),
-('c8098c1a-f86e-11da-bd1a-00112444be3d', 'Course 32', 'a8098c1a-f86e-11da-bd1a-00112444be3d', NOW(), NOW(), NULL),
-('c8098c1a-f86e-11da-bd1a-00112444be3e', 'Course 33', 'a8098c1a-f86e-11da-bd1a-00112444be3e', NOW(), NOW(), NULL),
-('c8098c1a-f86e-11da-bd1a-00112444be3f', 'Course 34', 'a8098c1a-f86e-11da-bd1a-00112444be3f', NOW(), NOW(), NULL),
-('c8098c1a-f86e-11da-bd1a-00112444be40', 'Course 35', 'a8098c1a-f86e-11da-bd1a-00112444be40', NOW(), NOW(), NULL),
-('c8098c1a-f86e-11da-bd1a-00112444be41', 'Course 36', 'a8098c1a-f86e-11da-bd1a-00112444be41', NOW(), NOW(), NULL),
-('c8098c1a-f86e-11da-bd1a-00112444be42', 'Course 37', 'a8098c1a-f86e-11da-bd1a-00112444be42', NOW(), NOW(), NULL),
-('c8098c1a-f86e-11da-bd1a-00112444be43', 'Course 38', 'a8098c1a-f86e-11da-bd1a-00112444be43', NOW(), NOW(), NULL),
-('c8098c1a-f86e-11da-bd1a-00112444be44', 'Course 39', 'a8098c1a-f86e-11da-bd1a-00112444be44', NOW(), NOW(), NULL),
-('c8098c1a-f86e-11da-bd1a-00112444be45', 'Course 40', 'a8098c1a-f86e-11da-bd1a-00112444be45', NOW(), NOW(), NULL);
-
-
-INSERT INTO food_items (id, custom_id, name, menu_id, restaurant_id, description, price, food_img_url, dietary_restriction, is_featured, spicy_rating, status, created_at, updated_at, deleted_at)
-VALUES
-('d8098c1a-f86e-11da-bd1a-00112444be1e', 'F1', 'Food Item 1', 'b7098c1a-f86e-11da-bd1a-00112444be1e', 'a8098c1a-f86e-11da-bd1a-00112444be1e', 'Delicious food item 1', '10.99', 'http://food.url/1.png', 'veg', TRUE, 1, 'in_stock', NOW(), NOW(), NULL),
-('d8098c1a-f86e-11da-bd1a-00112444be1f', 'F2', 'Food Item 2', 'b7098c1a-f86e-11da-bd1a-00112444be1f', 'a8098c1a-f86e-11da-bd1a-00112444be1f', 'Delicious food item 2', '12.99', 'http://food.url/2.png', 'non_veg', FALSE, 2, 'out_of_stock', NOW(), NOW(), NULL),
-('d8098c1a-f86e-11da-bd1a-00112444be20', 'F3', 'Food Item 3', 'b7098c1a-f86e-11da-bd1a-00112444be20', 'a8098c1a-f86e-11da-bd1a-00112444be20', 'Delicious food item 3', '15.99', 'http://food.url/3.png', 'egg', TRUE, 3, 'in_stock', NOW(), NOW(), NULL),
-('d8098c1a-f86e-11da-bd1a-00112444be21', 'F4', 'Food Item 4', 'b7098c1a-f86e-11da-bd1a-00112444be21', 'a8098c1a-f86e-11da-bd1a-00112444be21', 'Delicious food item 4', '8.99', 'http://food.url/4.png', 'veg', FALSE, 4, 'out_of_stock', NOW(), NOW(), NULL),
-('d8098c1a-f86e-11da-bd1a-00112444be22', 'F5', 'Food Item 5', 'b7098c1a-f86e-11da-bd1a-00112444be22', 'a8098c1a-f86e-11da-bd1a-00112444be22', 'Delicious food item 5', '9.99', 'http://food.url/5.png', 'non_veg', TRUE, 5, 'in_stock', NOW(), NOW(), NULL),
-('d8098c1a-f86e-11da-bd1a-00112444be23', 'F6', 'Food Item 6', 'b7098c1a-f86e-11da-bd1a-00112444be23', 'a8098c1a-f86e-11da-bd1a-00112444be23', 'Delicious food item 6', '11.99', 'http://food.url/6.png', 'egg', FALSE, 6, 'out_of_stock', NOW(), NOW(), NULL),
-('d8098c1a-f86e-11da-bd1a-00112444be24', 'F7', 'Food Item 7', 'b7098c1a-f86e-11da-bd1a-00112444be24', 'a8098c1a-f86e-11da-bd1a-00112444be24', 'Delicious food item 7', '7.99', 'http://food.url/7.png', 'veg', TRUE, 1, 'in_stock', NOW(), NOW(), NULL),
-('d8098c1a-f86e-11da-bd1a-00112444be25', 'F8', 'Food Item 8', 'b7098c1a-f86e-11da-bd1a-00112444be25', 'a8098c1a-f86e-11da-bd1a-00112444be25', 'Delicious food item 8', '6.99', 'http://food.url/8.png', 'non_veg', FALSE, 2, 'out_of_stock', NOW(), NOW(), NULL),
-('d8098c1a-f86e-11da-bd1a-00112444be26', 'F9', 'Food Item 9', 'b7098c1a-f86e-11da-bd1a-00112444be26', 'a8098c1a-f86e-11da-bd1a-00112444be26', 'Delicious food item 9', '5.99', 'http://food.url/9.png', 'egg', TRUE, 3, 'in_stock', NOW(), NOW(), NULL),
-('d8098c1a-f86e-11da-bd1a-00112444be27', 'F10', 'Food Item 10', 'b7098c1a-f86e-11da-bd1a-00112444be27', 'a8098c1a-f86e-11da-bd1a-00112444be27', 'Delicious food item 10', '4.99', 'http://food.url/10.png', 'veg', FALSE, 4, 'out_of_stock', NOW(), NOW(), NULL),
-('d8098c1a-f86e-11da-bd1a-00112444be28', 'F11', 'Food Item 11', 'b7098c1a-f86e-11da-bd1a-00112444be28', 'a8098c1a-f86e-11da-bd1a-00112444be28', 'Delicious food item 11', '14.99', 'http://food.url/11.png', 'non_veg', TRUE, 5, 'in_stock', NOW(), NOW(), NULL),
-('d8098c1a-f86e-11da-bd1a-00112444be29', 'F12', 'Food Item 12', 'b7098c1a-f86e-11da-bd1a-00112444be29', 'a8098c1a-f86e-11da-bd1a-00112444be29', 'Delicious food item 12', '13.99', 'http://food.url/12.png', 'egg', FALSE, 6, 'out_of_stock', NOW(), NOW(), NULL),
-('d8098c1a-f86e-11da-bd1a-00112444be2a', 'F13', 'Food Item 13', 'b7098c1a-f86e-11da-bd1a-00112444be2a', 'a8098c1a-f86e-11da-bd1a-00112444be2a', 'Delicious food item 13', '12.99', 'http://food.url/13.png', 'veg', TRUE, 1, 'in_stock', NOW(), NOW(), NULL),
-('d8098c1a-f86e-11da-bd1a-00112444be2b', 'F14', 'Food Item 14', 'b7098c1a-f86e-11da-bd1a-00112444be2b', 'a8098c1a-f86e-11da-bd1a-00112444be2b', 'Delicious food item 14', '11.99', 'http://food.url/14.png', 'non_veg', FALSE, 2, 'out_of_stock', NOW(), NOW(), NULL),
-('d8098c1a-f86e-11da-bd1a-00112444be2c', 'F15', 'Food Item 15', 'b7098c1a-f86e-11da-bd1a-00112444be2c', 'a8098c1a-f86e-11da-bd1a-00112444be2c', 'Delicious food item 15', '10.99', 'http://food.url/15.png', 'egg', TRUE, 3, 'in_stock', NOW(), NOW(), NULL),
-('d8098c1a-f86e-11da-bd1a-00112444be2d', 'F16', 'Food Item 16', 'b7098c1a-f86e-11da-bd1a-00112444be2d', 'a8098c1a-f86e-11da-bd1a-00112444be2d', 'Delicious food item 16', '9.99', 'http://food.url/16.png', 'veg', FALSE, 4, 'out_of_stock', NOW(), NOW(), NULL),
-('d8098c1a-f86e-11da-bd1a-00112444be2e', 'F17', 'Food Item 17', 'b7098c1a-f86e-11da-bd1a-00112444be2e', 'a8098c1a-f86e-11da-bd1a-00112444be2e', 'Delicious food item 17', '8.99', 'http://food.url/17.png', 'non_veg', TRUE, 5, 'in_stock', NOW(), NOW(), NULL),
-('d8098c1a-f86e-11da-bd1a-00112444be2f', 'F18', 'Food Item 18', 'b7098c1a-f86e-11da-bd1a-00112444be2f', 'a8098c1a-f86e-11da-bd1a-00112444be2f', 'Delicious food item 18', '7.99', 'http://food.url/18.png', 'egg', FALSE, 6, 'out_of_stock', NOW(), NOW(), NULL),
-('d8098c1a-f86e-11da-bd1a-00112444be30', 'F19', 'Food Item 19', 'b7098c1a-f86e-11da-bd1a-00112444be30', 'a8098c1a-f86e-11da-bd1a-00112444be30', 'Delicious food item 19', '6.99', 'http://food.url/19.png', 'veg', TRUE, 1, 'in_stock', NOW(), NOW(), NULL),
-('d8098c1a-f86e-11da-bd1a-00112444be31', 'F20', 'Food Item 20', 'b7098c1a-f86e-11da-bd1a-00112444be31', 'a8098c1a-f86e-11da-bd1a-00112444be31', 'Delicious food item 20', '5.99', 'http://food.url/20.png', 'non_veg', FALSE, 2, 'out_of_stock', NOW(), NOW(), NULL),
-('d8098c1a-f86e-11da-bd1a-00112444be32', 'F21', 'Food Item 21', 'b7098c1a-f86e-11da-bd1a-00112444be32', 'a8098c1a-f86e-11da-bd1a-00112444be32', 'Delicious food item 21', '4.99', 'http://food.url/21.png', 'egg', TRUE, 3, 'in_stock', NOW(), NOW(), NULL),
-('d8098c1a-f86e-11da-bd1a-00112444be33', 'F22', 'Food Item 22', 'b7098c1a-f86e-11da-bd1a-00112444be33', 'a8098c1a-f86e-11da-bd1a-00112444be33', 'Delicious food item 22', '3.99', 'http://food.url/22.png', 'veg', FALSE, 4, 'out_of_stock', NOW(), NOW(), NULL),
-('d8098c1a-f86e-11da-bd1a-00112444be34', 'F23', 'Food Item 23', 'b7098c1a-f86e-11da-bd1a-00112444be34', 'a8098c1a-f86e-11da-bd1a-00112444be34', 'Delicious food item 23', '2.99', 'http://food.url/23.png', 'non_veg', TRUE, 5, 'in_stock', NOW(), NOW(), NULL),
-('d8098c1a-f86e-11da-bd1a-00112444be35', 'F24', 'Food Item 24', 'b7098c1a-f86e-11da-bd1a-00112444be35', 'a8098c1a-f86e-11da-bd1a-00112444be35', 'Delicious food item 24', '1.99', 'http://food.url/24.png', 'egg', FALSE, 6, 'out_of_stock', NOW(), NOW(), NULL),
-('d8098c1a-f86e-11da-bd1a-00112444be36', 'F25', 'Food Item 25', 'b7098c1a-f86e-11da-bd1a-00112444be36', 'a8098c1a-f86e-11da-bd1a-00112444be36', 'Delicious food item 25', '14.99', 'http://food.url/25.png', 'veg', TRUE, 1, 'in_stock', NOW(), NOW(), NULL),
-('d8098c1a-f86e-11da-bd1a-00112444be37', 'F26', 'Food Item 26', 'b7098c1a-f86e-11da-bd1a-00112444be37', 'a8098c1a-f86e-11da-bd1a-00112444be37', 'Delicious food item 26', '13.99', 'http://food.url/26.png', 'non_veg', FALSE, 2, 'out_of_stock', NOW(), NOW(), NULL),
-('d8098c1a-f86e-11da-bd1a-00112444be38', 'F27', 'Food Item 27', 'b7098c1a-f86e-11da-bd1a-00112444be38', 'a8098c1a-f86e-11da-bd1a-00112444be38', 'Delicious food item 27', '12.99', 'http://food.url/27.png', 'egg', TRUE, 3, 'in_stock', NOW(), NOW(), NULL),
-('d8098c1a-f86e-11da-bd1a-00112444be39', 'F28', 'Food Item 28', 'b7098c1a-f86e-11da-bd1a-00112444be39', 'a8098c1a-f86e-11da-bd1a-00112444be39', 'Delicious food item 28', '11.99', 'http://food.url/28.png', 'veg', FALSE, 4, 'out_of_stock', NOW(), NOW(), NULL),
-('d8098c1a-f86e-11da-bd1a-00112444be3a', 'F29', 'Food Item 29', 'b7098c1a-f86e-11da-bd1a-00112444be3a', 'a8098c1a-f86e-11da-bd1a-00112444be3a', 'Delicious food item 29', '10.99', 'http://food.url/29.png', 'non_veg', TRUE, 5, 'in_stock', NOW(), NOW(), NULL),
-('d8098c1a-f86e-11da-bd1a-00112444be3b', 'F30', 'Food Item 30', 'b7098c1a-f86e-11da-bd1a-00112444be3b', 'a8098c1a-f86e-11da-bd1a-00112444be3b', 'Delicious food item 30', '9.99', 'http://food.url/30.png', 'egg', FALSE, 6, 'out_of_stock', NOW(), NOW(), NULL),
-('d8098c1a-f86e-11da-bd1a-00112444be3c', 'F31', 'Food Item 31', 'b7098c1a-f86e-11da-bd1a-00112444be3c', 'a8098c1a-f86e-11da-bd1a-00112444be3c', 'Delicious food item 31', '8.99', 'http://food.url/31.png', 'veg', TRUE, 1, 'in_stock', NOW(), NOW(), NULL),
-('d8098c1a-f86e-11da-bd1a-00112444be3d', 'F32', 'Food Item 32', 'b7098c1a-f86e-11da-bd1a-00112444be3d', 'a8098c1a-f86e-11da-bd1a-00112444be3d', 'Delicious food item 32', '7.99', 'http://food.url/32.png', 'non_veg', FALSE, 2, 'out_of_stock', NOW(), NOW(), NULL),
-('d8098c1a-f86e-11da-bd1a-00112444be3e', 'F33', 'Food Item 33', 'b7098c1a-f86e-11da-bd1a-00112444be3e', 'a8098c1a-f86e-11da-bd1a-00112444be3e', 'Delicious food item 33', '6.99', 'http://food.url/33.png', 'egg', TRUE, 3, 'in_stock', NOW(), NOW(), NULL),
-('d8098c1a-f86e-11da-bd1a-00112444be3f', 'F34', 'Food Item 34', 'b7098c1a-f86e-11da-bd1a-00112444be3f', 'a8098c1a-f86e-11da-bd1a-00112444be3f', 'Delicious food item 34', '5.99', 'http://food.url/34.png', 'veg', FALSE, 4, 'out_of_stock', NOW(), NOW(), NULL),
-('d8098c1a-f86e-11da-bd1a-00112444be40', 'F35', 'Food Item 35', 'b7098c1a-f86e-11da-bd1a-00112444be40', 'a8098c1a-f86e-11da-bd1a-00112444be40', 'Delicious food item 35', '4.99', 'http://food.url/35.png', 'non_veg', TRUE, 5, 'in_stock', NOW(), NOW(), NULL),
-('d8098c1a-f86e-11da-bd1a-00112444be41', 'F36', 'Food Item 36', 'b7098c1a-f86e-11da-bd1a-00112444be41', 'a8098c1a-f86e-11da-bd1a-00112444be41', 'Delicious food item 36', '3.99', 'http://food.url/36.png', 'egg', FALSE, 6, 'out_of_stock', NOW(), NOW(), NULL),
-('d8098c1a-f86e-11da-bd1a-00112444be42', 'F37', 'Food Item 37', 'b7098c1a-f86e-11da-bd1a-00112444be42', 'a8098c1a-f86e-11da-bd1a-00112444be42', 'Delicious food item 37', '2.99', 'http://food.url/37.png', 'veg', TRUE, 1, 'in_stock', NOW(), NOW(), NULL),
-('d8098c1a-f86e-11da-bd1a-00112444be43', 'F38', 'Food Item 38', 'b7098c1a-f86e-11da-bd1a-00112444be43', 'a8098c1a-f86e-11da-bd1a-00112444be43', 'Delicious food item 38', '1.99', 'http://food.url/38.png', 'non_veg', FALSE, 2, 'out_of_stock', NOW(), NOW(), NULL),
-('d8098c1a-f86e-11da-bd1a-00112444be44', 'F39', 'Food Item 39', 'b7098c1a-f86e-11da-bd1a-00112444be44', 'a8098c1a-f86e-11da-bd1a-00112444be44', 'Delicious food item 39', '14.99', 'http://food.url/39.png', 'egg', TRUE, 3, 'in_stock', NOW(), NOW(), NULL),
-('d8098c1a-f86e-11da-bd1a-00112444be45', 'F40', 'Food Item 40', 'b7098c1a-f86e-11da-bd1a-00112444be45', 'a8098c1a-f86e-11da-bd1a-00112444be45', 'Delicious food item 40', '13.99', 'http://food.url/40.png', 'veg', FALSE, 4, 'out_of_stock', NOW(), NOW(), NULL);
-
-
-INSERT INTO food_item_courses (id, name, course_id, food_item_id, created_at, updated_at, deleted_at)
-VALUES
-('e8098c1a-f86e-11da-bd1a-00112444be1e', 'Food Item Course 1', 'c8098c1a-f86e-11da-bd1a-00112444be1e', 'd8098c1a-f86e-11da-bd1a-00112444be1e', NOW(), NOW(), NULL),
-('e8098c1a-f86e-11da-bd1a-00112444be1f', 'Food Item Course 2', 'c8098c1a-f86e-11da-bd1a-00112444be1f', 'd8098c1a-f86e-11da-bd1a-00112444be1f', NOW(), NOW(), NULL),
-('e8098c1a-f86e-11da-bd1a-00112444be20', 'Food Item Course 3', 'c8098c1a-f86e-11da-bd1a-00112444be20', 'd8098c1a-f86e-11da-bd1a-00112444be20', NOW(), NOW(), NULL),
-('e8098c1a-f86e-11da-bd1a-00112444be21', 'Food Item Course 4', 'c8098c1a-f86e-11da-bd1a-00112444be21', 'd8098c1a-f86e-11da-bd1a-00112444be21', NOW(), NOW(), NULL),
-('e8098c1a-f86e-11da-bd1a-00112444be22', 'Food Item Course 5', 'c8098c1a-f86e-11da-bd1a-00112444be22', 'd8098c1a-f86e-11da-bd1a-00112444be22', NOW(), NOW(), NULL),
-('e8098c1a-f86e-11da-bd1a-00112444be23', 'Food Item Course 6', 'c8098c1a-f86e-11da-bd1a-00112444be23', 'd8098c1a-f86e-11da-bd1a-00112444be23', NOW(), NOW(), NULL),
-('e8098c1a-f86e-11da-bd1a-00112444be24', 'Food Item Course 7', 'c8098c1a-f86e-11da-bd1a-00112444be24', 'd8098c1a-f86e-11da-bd1a-00112444be24', NOW(), NOW(), NULL),
-('e8098c1a-f86e-11da-bd1a-00112444be25', 'Food Item Course 8', 'c8098c1a-f86e-11da-bd1a-00112444be25', 'd8098c1a-f86e-11da-bd1a-00112444be25', NOW(), NOW(), NULL),
-('e8098c1a-f86e-11da-bd1a-00112444be26', 'Food Item Course 9', 'c8098c1a-f86e-11da-bd1a-00112444be26', 'd8098c1a-f86e-11da-bd1a-00112444be26', NOW(), NOW(), NULL),
-('e8098c1a-f86e-11da-bd1a-00112444be27', 'Food Item Course 10', 'c8098c1a-f86e-11da-bd1a-00112444be27', 'd8098c1a-f86e-11da-bd1a-00112444be27', NOW(), NOW(), NULL),
-('e8098c1a-f86e-11da-bd1a-00112444be28', 'Food Item Course 11', 'c8098c1a-f86e-11da-bd1a-00112444be28', 'd8098c1a-f86e-11da-bd1a-00112444be28', NOW(), NOW(), NULL),
-('e8098c1a-f86e-11da-bd1a-00112444be29', 'Food Item Course 12', 'c8098c1a-f86e-11da-bd1a-00112444be29', 'd8098c1a-f86e-11da-bd1a-00112444be29', NOW(), NOW(), NULL),
-('e8098c1a-f86e-11da-bd1a-00112444be2a', 'Food Item Course 13', 'c8098c1a-f86e-11da-bd1a-00112444be2a', 'd8098c1a-f86e-11da-bd1a-00112444be2a', NOW(), NOW(), NULL),
-('e8098c1a-f86e-11da-bd1a-00112444be2b', 'Food Item Course 14', 'c8098c1a-f86e-11da-bd1a-00112444be2b', 'd8098c1a-f86e-11da-bd1a-00112444be2b', NOW(), NOW(), NULL),
-('e8098c1a-f86e-11da-bd1a-00112444be2c', 'Food Item Course 15', 'c8098c1a-f86e-11da-bd1a-00112444be2c', 'd8098c1a-f86e-11da-bd1a-00112444be2c', NOW(), NOW(), NULL),
-('e8098c1a-f86e-11da-bd1a-00112444be2d', 'Food Item Course 16', 'c8098c1a-f86e-11da-bd1a-00112444be2d', 'd8098c1a-f86e-11da-bd1a-00112444be2d', NOW(), NOW(), NULL),
-('e8098c1a-f86e-11da-bd1a-00112444be2e', 'Food Item Course 17', 'c8098c1a-f86e-11da-bd1a-00112444be2e', 'd8098c1a-f86e-11da-bd1a-00112444be2e', NOW(), NOW(), NULL),
-('e8098c1a-f86e-11da-bd1a-00112444be2f', 'Food Item Course 18', 'c8098c1a-f86e-11da-bd1a-00112444be2f', 'd8098c1a-f86e-11da-bd1a-00112444be2f', NOW(), NOW(), NULL),
-('e8098c1a-f86e-11da-bd1a-00112444be30', 'Food Item Course 19', 'c8098c1a-f86e-11da-bd1a-00112444be30', 'd8098c1a-f86e-11da-bd1a-00112444be30', NOW(), NOW(), NULL),
-('e8098c1a-f86e-11da-bd1a-00112444be31', 'Food Item Course 20', 'c8098c1a-f86e-11da-bd1a-00112444be31', 'd8098c1a-f86e-11da-bd1a-00112444be31', NOW(), NOW(), NULL),
-('e8098c1a-f86e-11da-bd1a-00112444be32', 'Food Item Course 21', 'c8098c1a-f86e-11da-bd1a-00112444be32', 'd8098c1a-f86e-11da-bd1a-00112444be32', NOW(), NOW(), NULL),
-('e8098c1a-f86e-11da-bd1a-00112444be33', 'Food Item Course 22', 'c8098c1a-f86e-11da-bd1a-00112444be33', 'd8098c1a-f86e-11da-bd1a-00112444be33', NOW(), NOW(), NULL),
-('e8098c1a-f86e-11da-bd1a-00112444be34', 'Food Item Course 23', 'c8098c1a-f86e-11da-bd1a-00112444be34', 'd8098c1a-f86e-11da-bd1a-00112444be34', NOW(), NOW(), NULL),
-('e8098c1a-f86e-11da-bd1a-00112444be35', 'Food Item Course 24', 'c8098c1a-f86e-11da-bd1a-00112444be35', 'd8098c1a-f86e-11da-bd1a-00112444be35', NOW(), NOW(), NULL),
-('e8098c1a-f86e-11da-bd1a-00112444be36', 'Food Item Course 25', 'c8098c1a-f86e-11da-bd1a-00112444be36', 'd8098c1a-f86e-11da-bd1a-00112444be36', NOW(), NOW(), NULL),
-('e8098c1a-f86e-11da-bd1a-00112444be37', 'Food Item Course 26', 'c8098c1a-f86e-11da-bd1a-00112444be37', 'd8098c1a-f86e-11da-bd1a-00112444be37', NOW(), NOW(), NULL),
-('e8098c1a-f86e-11da-bd1a-00112444be38', 'Food Item Course 27', 'c8098c1a-f86e-11da-bd1a-00112444be38', 'd8098c1a-f86e-11da-bd1a-00112444be38', NOW(), NOW(), NULL),
-('e8098c1a-f86e-11da-bd1a-00112444be39', 'Food Item Course 28', 'c8098c1a-f86e-11da-bd1a-00112444be39', 'd8098c1a-f86e-11da-bd1a-00112444be39', NOW(), NOW(), NULL),
-('e8098c1a-f86e-11da-bd1a-00112444be3a', 'Food Item Course 29', 'c8098c1a-f86e-11da-bd1a-00112444be3a', 'd8098c1a-f86e-11da-bd1a-00112444be3a', NOW(), NOW(), NULL),
-('e8098c1a-f86e-11da-bd1a-00112444be3b', 'Food Item Course 30', 'c8098c1a-f86e-11da-bd1a-00112444be3b', 'd8098c1a-f86e-11da-bd1a-00112444be3b', NOW(), NOW(), NULL),
-('e8098c1a-f86e-11da-bd1a-00112444be3c', 'Food Item Course 31', 'c8098c1a-f86e-11da-bd1a-00112444be3c', 'd8098c1a-f86e-11da-bd1a-00112444be3c', NOW(), NOW(), NULL),
-('e8098c1a-f86e-11da-bd1a-00112444be3d', 'Food Item Course 32', 'c8098c1a-f86e-11da-bd1a-00112444be3d', 'd8098c1a-f86e-11da-bd1a-00112444be3d', NOW(), NOW(), NULL),
-('e8098c1a-f86e-11da-bd1a-00112444be3e', 'Food Item Course 33', 'c8098c1a-f86e-11da-bd1a-00112444be3e', 'd8098c1a-f86e-11da-bd1a-00112444be3e', NOW(), NOW(), NULL),
-('e8098c1a-f86e-11da-bd1a-00112444be3f', 'Food Item Course 34', 'c8098c1a-f86e-11da-bd1a-00112444be3f', 'd8098c1a-f86e-11da-bd1a-00112444be3f', NOW(), NOW(), NULL),
-('e8098c1a-f86e-11da-bd1a-00112444be40', 'Food Item Course 35', 'c8098c1a-f86e-11da-bd1a-00112444be40', 'd8098c1a-f86e-11da-bd1a-00112444be40', NOW(), NOW(), NULL),
-('e8098c1a-f86e-11da-bd1a-00112444be41', 'Food Item Course 36', 'c8098c1a-f86e-11da-bd1a-00112444be41', 'd8098c1a-f86e-11da-bd1a-00112444be41', NOW(), NOW(), NULL),
-('e8098c1a-f86e-11da-bd1a-00112444be42', 'Food Item Course 37', 'c8098c1a-f86e-11da-bd1a-00112444be42', 'd8098c1a-f86e-11da-bd1a-00112444be42', NOW(), NOW(), NULL),
-('e8098c1a-f86e-11da-bd1a-00112444be43', 'Food Item Course 38', 'c8098c1a-f86e-11da-bd1a-00112444be43', 'd8098c1a-f86e-11da-bd1a-00112444be43', NOW(), NOW(), NULL),
-('e8098c1a-f86e-11da-bd1a-00112444be44', 'Food Item Course 39', 'c8098c1a-f86e-11da-bd1a-00112444be44', 'd8098c1a-f86e-11da-bd1a-00112444be44', NOW(), NOW(), NULL),
-('e8098c1a-f86e-11da-bd1a-00112444be45', 'Food Item Course 40', 'c8098c1a-f86e-11da-bd1a-00112444be45', 'd8098c1a-f86e-11da-bd1a-00112444be45', NOW(), NOW(), NULL);
-
-
-INSERT INTO orders (id, custom_order_id, restaurant_id, user_id, total_amount, table_id, invoice_url, is_paid, status, created_at, updated_at, deleted_at)
-VALUES
-('f8098c1a-f86e-11da-bd1a-00112444be1e', 'ORD1', 'a8098c1a-f86e-11da-bd1a-00112444be1e', '550e8400-e29b-41d4-a716-446655440000', '50.00', '123e4567-e89b-12d3-a456-426614174000', 'http://invoice.url/1.pdf', TRUE, 'order_placed', NOW(), NOW(), NULL),
-('f8098c1a-f86e-11da-bd1a-00112444be1f', 'ORD2', 'a8098c1a-f86e-11da-bd1a-00112444be1f', '550e8400-e29b-41d4-a716-446655440001', '75.00', '123e4567-e89b-12d3-a456-426614174001', 'http://invoice.url/2.pdf', FALSE, 'confirmed', NOW(), NOW(), NULL),
-('f8098c1a-f86e-11da-bd1a-00112444be20', 'ORD3', 'a8098c1a-f86e-11da-bd1a-00112444be20', '550e8400-e29b-41d4-a716-446655440002', '100.00', '123e4567-e89b-12d3-a456-426614174002', 'http://invoice.url/3.pdf', TRUE, 'in_process', NOW(), NOW(), NULL),
-('f8098c1a-f86e-11da-bd1a-00112444be21', 'ORD4', 'a8098c1a-f86e-11da-bd1a-00112444be21', '550e8400-e29b-41d4-a716-446655440003', '120.00', '123e4567-e89b-12d3-a456-426614174003', 'http://invoice.url/4.pdf', FALSE, 'completed', NOW(), NOW(), NULL),
-('f8098c1a-f86e-11da-bd1a-00112444be22', 'ORD5', 'a8098c1a-f86e-11da-bd1a-00112444be22', '550e8400-e29b-41d4-a716-446655440004', '80.00', '123e4567-e89b-12d3-a456-426614174004', 'http://invoice.url/5.pdf', TRUE, 'deleted', NOW(), NOW(), NULL),
-('f8098c1a-f86e-11da-bd1a-00112444be23', 'ORD6', 'a8098c1a-f86e-11da-bd1a-00112444be23', '550e8400-e29b-41d4-a716-446655440005', '90.00', '123e4567-e89b-12d3-a456-426614174005', 'http://invoice.url/6.pdf', FALSE, 'order_placed', NOW(), NOW(), NULL),
-('f8098c1a-f86e-11da-bd1a-00112444be24', 'ORD7', 'a8098c1a-f86e-11da-bd1a-00112444be24', '550e8400-e29b-41d4-a716-446655440006', '110.00', '123e4567-e89b-12d3-a456-426614174006', 'http://invoice.url/7.pdf', TRUE, 'confirmed', NOW(), NOW(), NULL),
-('f8098c1a-f86e-11da-bd1a-00112444be25', 'ORD8', 'a8098c1a-f86e-11da-bd1a-00112444be25', '550e8400-e29b-41d4-a716-446655440007', '70.00', '123e4567-e89b-12d3-a456-426614174007', 'http://invoice.url/8.pdf', FALSE, 'in_process', NOW(), NOW(), NULL),
-('f8098c1a-f86e-11da-bd1a-00112444be26', 'ORD9', 'a8098c1a-f86e-11da-bd1a-00112444be26', '550e8400-e29b-41d4-a716-446655440008', '60.00', '123e4567-e89b-12d3-a456-426614174008', 'http://invoice.url/9.pdf', TRUE, 'completed', NOW(), NOW(), NULL),
-('f8098c1a-f86e-11da-bd1a-00112444be27', 'ORD10', 'a8098c1a-f86e-11da-bd1a-00112444be27', '550e8400-e29b-41d4-a716-446655440009', '95.00', '123e4567-e89b-12d3-a456-426614174009', 'http://invoice.url/10.pdf', FALSE, 'deleted', NOW(), NOW(), NULL),
-('f8098c1a-f86e-11da-bd1a-00112444be28', 'ORD11', 'a8098c1a-f86e-11da-bd1a-00112444be28', '550e8400-e29b-41d4-a716-446655440010', '85.00', '123e4567-e89b-12d3-a456-426614174010', 'http://invoice.url/11.pdf', TRUE, 'order_placed', NOW(), NOW(), NULL),
-('f8098c1a-f86e-11da-bd1a-00112444be29', 'ORD12', 'a8098c1a-f86e-11da-bd1a-00112444be29', '550e8400-e29b-41d4-a716-446655440011', '115.00', '123e4567-e89b-12d3-a456-426614174011', 'http://invoice.url/12.pdf', FALSE, 'confirmed', NOW(), NOW(), NULL),
-('f8098c1a-f86e-11da-bd1a-00112444be2a', 'ORD13', 'a8098c1a-f86e-11da-bd1a-00112444be2a', '550e8400-e29b-41d4-a716-446655440012', '105.00', '123e4567-e89b-12d3-a456-426614174012', 'http://invoice.url/13.pdf', TRUE, 'in_process', NOW(), NOW(), NULL),
-('f8098c1a-f86e-11da-bd1a-00112444be2b', 'ORD14', 'a8098c1a-f86e-11da-bd1a-00112444be2b', '550e8400-e29b-41d4-a716-446655440013', '130.00', '123e4567-e89b-12d3-a456-426614174013', 'http://invoice.url/14.pdf', FALSE, 'completed', NOW(), NOW(), NULL),
-('f8098c1a-f86e-11da-bd1a-00112444be2c', 'ORD15', 'a8098c1a-f86e-11da-bd1a-00112444be2c', '550e8400-e29b-41d4-a716-446655440014', '125.00', '123e4567-e89b-12d3-a456-426614174014', 'http://invoice.url/15.pdf', TRUE, 'deleted', NOW(), NOW(), NULL),
-('f8098c1a-f86e-11da-bd1a-00112444be2d', 'ORD16', 'a8098c1a-f86e-11da-bd1a-00112444be2d', '550e8400-e29b-41d4-a716-446655440015', '90.00', '123e4567-e89b-12d3-a456-426614174015', 'http://invoice.url/16.pdf', FALSE, 'order_placed', NOW(), NOW(), NULL),
-('f8098c1a-f86e-11da-bd1a-00112444be2e', 'ORD17', 'a8098c1a-f86e-11da-bd1a-00112444be2e', '550e8400-e29b-41d4-a716-446655440016', '100.00', '123e4567-e89b-12d3-a456-426614174016', 'http://invoice.url/17.pdf', TRUE, 'confirmed', NOW(), NOW(), NULL),
-('f8098c1a-f86e-11da-bd1a-00112444be2f', 'ORD18', 'a8098c1a-f86e-11da-bd1a-00112444be2f', '550e8400-e29b-41d4-a716-446655440017', '110.00', '123e4567-e89b-12d3-a456-426614174017', 'http://invoice.url/18.pdf', FALSE, 'in_process', NOW(), NOW(), NULL),
-('f8098c1a-f86e-11da-bd1a-00112444be30', 'ORD19', 'a8098c1a-f86e-11da-bd1a-00112444be30', '550e8400-e29b-41d4-a716-446655440018', '120.00', '123e4567-e89b-12d3-a456-426614174018', 'http://invoice.url/19.pdf', TRUE, 'completed', NOW(), NOW(), NULL),
-('f8098c1a-f86e-11da-bd1a-00112444be31', 'ORD20', 'a8098c1a-f86e-11da-bd1a-00112444be31', '550e8400-e29b-41d4-a716-446655440019', '130.00', '123e4567-e89b-12d3-a456-426614174019', 'http://invoice.url/20.pdf', FALSE, 'deleted', NOW(), NOW(), NULL),
-('f8098c1a-f86e-11da-bd1a-00112444be32', 'ORD21', 'a8098c1a-f86e-11da-bd1a-00112444be32', '550e8400-e29b-41d4-a716-446655440020', '140.00', '123e4567-e89b-12d3-a456-426614174020', 'http://invoice.url/21.pdf', TRUE, 'order_placed', NOW(), NOW(), NULL),
-('f8098c1a-f86e-11da-bd1a-00112444be33', 'ORD22', 'a8098c1a-f86e-11da-bd1a-00112444be33', '550e8400-e29b-41d4-a716-446655440021', '150.00', '123e4567-e89b-12d3-a456-426614174021', 'http://invoice.url/22.pdf', FALSE, 'confirmed', NOW(), NOW(), NULL),
-('f8098c1a-f86e-11da-bd1a-00112444be34', 'ORD23', 'a8098c1a-f86e-11da-bd1a-00112444be34', '550e8400-e29b-41d4-a716-446655440022', '160.00', '123e4567-e89b-12d3-a456-426614174022', 'http://invoice.url/23.pdf', TRUE, 'in_process', NOW(), NOW(), NULL),
-('f8098c1a-f86e-11da-bd1a-00112444be35', 'ORD24', 'a8098c1a-f86e-11da-bd1a-00112444be35', '550e8400-e29b-41d4-a716-446655440023', '170.00', '123e4567-e89b-12d3-a456-426614174023', 'http://invoice.url/24.pdf', FALSE, 'completed', NOW(), NOW(), NULL),
-('f8098c1a-f86e-11da-bd1a-00112444be36', 'ORD25', 'a8098c1a-f86e-11da-bd1a-00112444be36', '550e8400-e29b-41d4-a716-446655440024', '180.00', '123e4567-e89b-12d3-a456-426614174024', 'http://invoice.url/25.pdf', TRUE, 'deleted', NOW(), NOW(), NULL),
-('f8098c1a-f86e-11da-bd1a-00112444be37', 'ORD26', 'a8098c1a-f86e-11da-bd1a-00112444be37', '550e8400-e29b-41d4-a716-446655440025', '190.00', '123e4567-e89b-12d3-a456-426614174025', 'http://invoice.url/26.pdf', FALSE, 'order_placed', NOW(), NOW(), NULL),
-('f8098c1a-f86e-11da-bd1a-00112444be38', 'ORD27', 'a8098c1a-f86e-11da-bd1a-00112444be38', '550e8400-e29b-41d4-a716-446655440026', '200.00', '123e4567-e89b-12d3-a456-426614174026', 'http://invoice.url/27.pdf', TRUE, 'confirmed', NOW(), NOW(), NULL),
-('f8098c1a-f86e-11da-bd1a-00112444be39', 'ORD28', 'a8098c1a-f86e-11da-bd1a-00112444be39', '550e8400-e29b-41d4-a716-446655440027', '210.00', '123e4567-e89b-12d3-a456-426614174027', 'http://invoice.url/28.pdf', FALSE, 'in_process', NOW(), NOW(), NULL),
-('f8098c1a-f86e-11da-bd1a-00112444be3a', 'ORD29', 'a8098c1a-f86e-11da-bd1a-00112444be3a', '550e8400-e29b-41d4-a716-446655440028', '220.00', '123e4567-e89b-12d3-a456-426614174028', 'http://invoice.url/29.pdf', TRUE, 'completed', NOW(), NOW(), NULL),
-('f8098c1a-f86e-11da-bd1a-00112444be3b', 'ORD30', 'a8098c1a-f86e-11da-bd1a-00112444be3b', '550e8400-e29b-41d4-a716-446655440029', '230.00', '123e4567-e89b-12d3-a456-426614174029', 'http://invoice.url/30.pdf', FALSE, 'deleted', NOW(), NOW(), NULL),
-('f8098c1a-f86e-11da-bd1a-00112444be3c', 'ORD31', 'a8098c1a-f86e-11da-bd1a-00112444be3c', '550e8400-e29b-41d4-a716-446655440030', '240.00', '123e4567-e89b-12d3-a456-426614174030', 'http://invoice.url/31.pdf', TRUE, 'order_placed', NOW(), NOW(), NULL),
-('f8098c1a-f86e-11da-bd1a-00112444be3d', 'ORD32', 'a8098c1a-f86e-11da-bd1a-00112444be3d', '550e8400-e29b-41d4-a716-446655440031', '250.00', '123e4567-e89b-12d3-a456-426614174031', 'http://invoice.url/32.pdf', FALSE, 'confirmed', NOW(), NOW(), NULL),
-('f8098c1a-f86e-11da-bd1a-00112444be3e', 'ORD33', 'a8098c1a-f86e-11da-bd1a-00112444be3e', '550e8400-e29b-41d4-a716-446655440032', '260.00', '123e4567-e89b-12d3-a456-426614174032', 'http://invoice.url/33.pdf', TRUE, 'in_process', NOW(), NOW(), NULL),
-('f8098c1a-f86e-11da-bd1a-00112444be3f', 'ORD34', 'a8098c1a-f86e-11da-bd1a-00112444be3f', '550e8400-e29b-41d4-a716-446655440033', '270.00', '123e4567-e89b-12d3-a456-426614174033', 'http://invoice.url/34.pdf', FALSE, 'completed', NOW(), NOW(), NULL),
-('f8098c1a-f86e-11da-bd1a-00112444be40', 'ORD35', 'a8098c1a-f86e-11da-bd1a-00112444be40', '550e8400-e29b-41d4-a716-446655440034', '280.00', '123e4567-e89b-12d3-a456-426614174034', 'http://invoice.url/35.pdf', TRUE, 'deleted', NOW(), NOW(), NULL),
-('f8098c1a-f86e-11da-bd1a-00112444be41', 'ORD36', 'a8098c1a-f86e-11da-bd1a-00112444be41', '550e8400-e29b-41d4-a716-446655440035', '290.00', '123e4567-e89b-12d3-a456-426614174035', 'http://invoice.url/36.pdf', FALSE, 'order_placed', NOW(), NOW(), NULL),
-('f8098c1a-f86e-11da-bd1a-00112444be42', 'ORD37', 'a8098c1a-f86e-11da-bd1a-00112444be42', '550e8400-e29b-41d4-a716-446655440036', '300.00', '123e4567-e89b-12d3-a456-426614174036', 'http://invoice.url/37.pdf', TRUE, 'confirmed', NOW(), NOW(), NULL),
-('f8098c1a-f86e-11da-bd1a-00112444be43', 'ORD38', 'a8098c1a-f86e-11da-bd1a-00112444be43', '550e8400-e29b-41d4-a716-446655440037', '310.00', '123e4567-e89b-12d3-a456-426614174037', 'http://invoice.url/38.pdf', FALSE, 'in_process', NOW(), NOW(), NULL),
-('f8098c1a-f86e-11da-bd1a-00112444be44', 'ORD39', 'a8098c1a-f86e-11da-bd1a-00112444be44', '550e8400-e29b-41d4-a716-446655440038', '320.00', '123e4567-e89b-12d3-a456-426614174038', 'http://invoice.url/39.pdf', TRUE, 'completed', NOW(), NOW(), NULL),
-('f8098c1a-f86e-11da-bd1a-00112444be45', 'ORD40', 'a8098c1a-f86e-11da-bd1a-00112444be45', '550e8400-e29b-41d4-a716-446655440039', '330.00', '123e4567-e89b-12d3-a456-426614174039', 'http://invoice.url/40.pdf', FALSE, 'deleted', NOW(), NOW(), NULL);
-
-
-
-INSERT INTO order_items (id, order_id, food_item_id, amount, quantity, status, created_at, updated_at, deleted_at)
-VALUES
-('h8098c1a-f86e-11da-bd1a-00112444be1e', 'f8098c1a-f86e-11da-bd1a-00112444be1e', 'd8098c1a-f86e-11da-bd1a-00112444be1e', '20.00', 2, 'order_placed', NOW(), NOW(), NULL),
-('h8098c1a-f86e-11da-bd1a-00112444be1f', 'f8098c1a-f86e-11da-bd1a-00112444be1f', 'd8098c1a-f86e-11da-bd1a-00112444be1f', '15.00', 1, 'confirmed', NOW(), NOW(), NULL),
-('h8098c1a-f86e-11da-bd1a-00112444be20', 'f8098c1a-f86e-11da-bd1a-00112444be20', 'd8098c1a-f86e-11da-bd1a-00112444be20', '36.00', 3, 'in_process', NOW(), NOW(), NULL),
-('h8098c1a-f86e-11da-bd1a-00112444be21', 'f8098c1a-f86e-11da-bd1a-00112444be21', 'd8098c1a-f86e-11da-bd1a-00112444be21', '40.00', 2, 'completed', NOW(), NOW(), NULL),
-('h8098c1a-f86e-11da-bd1a-00112444be22', 'f8098c1a-f86e-11da-bd1a-00112444be22', 'd8098c1a-f86e-11da-bd1a-00112444be22', '10.00', 1, 'deleted', NOW(), NOW(), NULL),
-('h8098c1a-f86e-11da-bd1a-00112444be23', 'f8098c1a-f86e-11da-bd1a-00112444be23', 'd8098c1a-f86e-11da-bd1a-00112444be23', '36.00', 2, 'order_placed', NOW(), NOW(), NULL),
-('h8098c1a-f86e-11da-bd1a-00112444be24', 'f8098c1a-f86e-11da-bd1a-00112444be24', 'd8098c1a-f86e-11da-bd1a-00112444be24', '33.00', 3, 'confirmed', NOW(), NOW(), NULL),
-('h8098c1a-f86e-11da-bd1a-00112444be25', 'f8098c1a-f86e-11da-bd1a-00112444be25', 'd8098c1a-f86e-11da-bd1a-00112444be25', '19.00', 1, 'in_process', NOW(), NOW(), NULL),
-('h8098c1a-f86e-11da-bd1a-00112444be26', 'f8098c1a-f86e-11da-bd1a-00112444be26', 'd8098c1a-f86e-11da-bd1a-00112444be26', '26.00', 2, 'completed', NOW(), NOW(), NULL),
-('h8098c1a-f86e-11da-bd1a-00112444be27', 'f8098c1a-f86e-11da-bd1a-00112444be27', 'd8098c1a-f86e-11da-bd1a-00112444be27', '17.00', 1, 'deleted', NOW(), NOW(), NULL),
-('h8098c1a-f86e-11da-bd1a-00112444be28', 'f8098c1a-f86e-11da-bd1a-00112444be28', 'd8098c1a-f86e-11da-bd1a-00112444be28', '48.00', 3, 'order_placed', NOW(), NOW(), NULL),
-('h8098c1a-f86e-11da-bd1a-00112444be29', 'f8098c1a-f86e-11da-bd1a-00112444be29', 'd8098c1a-f86e-11da-bd1a-00112444be29', '24.00', 2, 'confirmed', NOW(), NOW(), NULL),
-('h8098c1a-f86e-11da-bd1a-00112444be2a', 'f8098c1a-f86e-11da-bd1a-00112444be2a', 'd8098c1a-f86e-11da-bd1a-00112444be2a', '14.00', 1, 'in_process', NOW(), NOW(), NULL),
-('h8098c1a-f86e-11da-bd1a-00112444be2b', 'f8098c1a-f86e-11da-bd1a-00112444be2b', 'd8098c1a-f86e-11da-bd1a-00112444be2b', '26.00', 2, 'completed', NOW(), NOW(), NULL),
-('h8098c1a-f86e-11da-bd1a-00112444be2c', 'f8098c1a-f86e-11da-bd1a-00112444be2c', 'd8098c1a-f86e-11da-bd1a-00112444be2c', '33.00', 3, 'deleted', NOW(), NOW(), NULL),
-('h8098c1a-f86e-11da-bd1a-00112444be2d', 'f8098c1a-f86e-11da-bd1a-00112444be2d', 'd8098c1a-f86e-11da-bd1a-00112444be2d', '15.00', 1, 'order_placed', NOW(), NOW(), NULL),
-('h8098c1a-f86e-11da-bd1a-00112444be2e', 'f8098c1a-f86e-11da-bd1a-00112444be2e', 'd8098c1a-f86e-11da-bd1a-00112444be2e', '36.00', 2, 'confirmed', NOW(), NOW(), NULL),
-('h8098c1a-f86e-11da-bd1a-00112444be2f', 'f8098c1a-f86e-11da-bd1a-00112444be2f', 'd8098c1a-f86e-11da-bd1a-00112444be2f', '36.00', 3, 'in_process', NOW(), NOW(), NULL),
-('h8098c1a-f86e-11da-bd1a-00112444be30', 'f8098c1a-f86e-11da-bd1a-00112444be30', 'd8098c1a-f86e-11da-bd1a-00112444be30', '17.00', 1, 'completed', NOW(), NOW(), NULL),
-('h8098c1a-f86e-11da-bd1a-00112444be31', 'f8098c1a-f86e-11da-bd1a-00112444be31', 'd8098c1a-f86e-11da-bd1a-00112444be31', '28.00', 2, 'deleted', NOW(), NOW(), NULL),
-('h8098c1a-f86e-11da-bd1a-00112444be32', 'f8098c1a-f86e-11da-bd1a-00112444be32', 'd8098c1a-f86e-11da-bd1a-00112444be32', '33.00', 3, 'order_placed', NOW(), NOW(), NULL),
-('h8098c1a-f86e-11da-bd1a-00112444be33', 'f8098c1a-f86e-11da-bd1a-00112444be33', 'd8098c1a-f86e-11da-bd1a-00112444be33', '19.00', 1, 'confirmed', NOW(), NOW(), NULL),
-('h8098c1a-f86e-11da-bd1a-00112444be34', 'f8098c1a-f86e-11da-bd1a-00112444be34', 'd8098c1a-f86e-11da-bd1a-00112444be34', '24.00', 2, 'in_process', NOW(), NOW(), NULL),
-('h8098c1a-f86e-11da-bd1a-00112444be35', 'f8098c1a-f86e-11da-bd1a-00112444be35', 'd8098c1a-f86e-11da-bd1a-00112444be35', '45.00', 3, 'completed', NOW(), NOW(), NULL),
-('h8098c1a-f86e-11da-bd1a-00112444be36', 'f8098c1a-f86e-11da-bd1a-00112444be36', 'd8098c1a-f86e-11da-bd1a-00112444be36', '17.00', 1, 'deleted', NOW(), NOW(), NULL),
-('h8098c1a-f86e-11da-bd1a-00112444be37', 'f8098c1a-f86e-11da-bd1a-00112444be37', 'd8098c1a-f86e-11da-bd1a-00112444be37', '20.00', 2, 'order_placed', NOW(), NOW(), NULL),
-('h8098c1a-f86e-11da-bd1a-00112444be38', 'f8098c1a-f86e-11da-bd1a-00112444be38', 'd8098c1a-f86e-11da-bd1a-00112444be38', '36.00', 3, 'confirmed', NOW(), NOW(), NULL),
-('h8098c1a-f86e-11da-bd1a-00112444be39', 'f8098c1a-f86e-11da-bd1a-00112444be39', 'd8098c1a-f86e-11da-bd1a-00112444be39', '14.00', 1, 'in_process', NOW(), NOW(), NULL),
-('h8098c1a-f86e-11da-bd1a-00112444be3a', 'f8098c1a-f86e-11da-bd1a-00112444be3a', 'd8098c1a-f86e-11da-bd1a-00112444be3a', '26.00', 2, 'completed', NOW(), NOW(), NULL),
-('h8098c1a-f86e-11da-bd1a-00112444be3b', 'f8098c1a-f86e-11da-bd1a-00112444be3b', 'd8098c1a-f86e-11da-bd1a-00112444be3b', '33.00', 3, 'deleted', NOW(), NOW(), NULL),
-('h8098c1a-f86e-11da-bd1a-00112444be3c', 'f8098c1a-f86e-11da-bd1a-00112444be3c', 'd8098c1a-f86e-11da-bd1a-00112444be3c', '15.00', 1, 'order_placed', NOW(), NOW(), NULL),
-('h8098c1a-f86e-11da-bd1a-00112444be3d', 'f8098c1a-f86e-11da-bd1a-00112444be3d', 'd8098c1a-f86e-11da-bd1a-00112444be3d', '36.00', 2, 'confirmed', NOW(), NOW(), NULL),
-('h8098c1a-f86e-11da-bd1a-00112444be3e', 'f8098c1a-f86e-11da-bd1a-00112444be3e', 'd8098c1a-f86e-11da-bd1a-00112444be3e', '36.00', 3, 'in_process', NOW(), NOW(), NULL),
-('h8098c1a-f86e-11da-bd1a-00112444be3f', 'f8098c1a-f86e-11da-bd1a-00112444be3f', 'd8098c1a-f86e-11da-bd1a-00112444be3f', '17.00', 1, 'completed', NOW(), NOW(), NULL),
-('h8098c1a-f86e-11da-bd1a-00112444be40', 'f8098c1a-f86e-11da-bd1a-00112444be40', 'd8098c1a-f86e-11da-bd1a-00112444be40', '28.00', 2, 'deleted', NOW(), NOW(), NULL),
-('h8098c1a-f86e-11da-bd1a-00112444be41', 'f8098c1a-f86e-11da-bd1a-00112444be41', 'd8098c1a-f86e-11da-bd1a-00112444be41', '33.00', 3, 'order_placed', NOW(), NOW(), NULL),
-('h8098c1a-f86e-11da-bd1a-00112444be42', 'f8098c1a-f86e-11da-bd1a-00112444be42', 'd8098c1a-f86e-11da-bd1a-00112444be42', '19.00', 1, 'confirmed', NOW(), NOW(), NULL),
-('h8098c1a-f86e-11da-bd1a-00112444be43', 'f8098c1a-f86e-11da-bd1a-00112444be43', 'd8098c1a-f86e-11da-bd1a-00112444be43', '24.00', 2, 'in_process', NOW(), NOW(), NULL),
-('h8098c1a-f86e-11da-bd1a-00112444be44', 'f8098c1a-f86e-11da-bd1a-00112444be44', 'd8098c1a-f86e-11da-bd1a-00112444be44', '45.00', 3, 'completed', NOW(), NOW(), NULL),
-('h8098c1a-f86e-11da-bd1a-00112444be45', 'f8098c1a-f86e-11da-bd1a-00112444be45', 'd8098c1a-f86e-11da-bd1a-00112444be45', '17.00', 1, 'deleted', NOW(), NOW(), NULL);
-
-
-
-INSERT INTO tables (id, name, table_no, restaurant_id, status, created_at, updated_at, deleted_at)
-VALUES
-('i8098c1a-f86e-11da-bd1a-00112444be1e', 'Table 1', 'T1', 'a8098c1a-f86e-11da-bd1a-00112444be1e', 'occupied', NOW(), NOW(), NULL),
-('i8098c1a-f86e-11da-bd1a-00112444be1f', 'Table 2', 'T2', 'a8098c1a-f86e-11da-bd1a-00112444be1f', 'available', NOW(), NOW(), NULL),
-('i8098c1a-f86e-11da-bd1a-00112444be20', 'Table 3', 'T3', 'a8098c1a-f86e-11da-bd1a-00112444be20', 'reserved', NOW(), NOW(), NULL),
-('i8098c1a-f86e-11da-bd1a-00112444be21', 'Table 4', 'T4', 'a8098c1a-f86e-11da-bd1a-00112444be21', 'occupied', NOW(), NOW(), NULL),
-('i8098c1a-f86e-11da-bd1a-00112444be22', 'Table 5', 'T5', 'a8098c1a-f86e-11da-bd1a-00112444be22', 'available', NOW(), NOW(), NULL),
-('i8098c1a-f86e-11da-bd1a-00112444be23', 'Table 6', 'T6', 'a8098c1a-f86e-11da-bd1a-00112444be23', 'reserved', NOW(), NOW(), NULL),
-('i8098c1a-f86e-11da-bd1a-00112444be24', 'Table 7', 'T7', 'a8098c1a-f86e-11da-bd1a-00112444be24', 'occupied', NOW(), NOW(), NULL),
-('i8098c1a-f86e-11da-bd1a-00112444be25', 'Table 8', 'T8', 'a8098c1a-f86e-11da-bd1a-00112444be25', 'available', NOW(), NOW(), NULL),
-('i8098c1a-f86e-11da-bd1a-00112444be26', 'Table 9', 'T9', 'a8098c1a-f86e-11da-bd1a-00112444be26', 'reserved', NOW(), NOW(), NULL),
-('i8098c1a-f86e-11da-bd1a-00112444be27', 'Table 10', 'T10', 'a8098c1a-f86e-11da-bd1a-00112444be27', 'occupied', NOW(), NOW(), NULL),
-('i8098c1a-f86e-11da-bd1a-00112444be28', 'Table 11', 'T11', 'a8098c1a-f86e-11da-bd1a-00112444be28', 'available', NOW(), NOW(), NULL),
-('i8098c1a-f86e-11da-bd1a-00112444be29', 'Table 12', 'T12', 'a8098c1a-f86e-11da-bd1a-00112444be29', 'reserved', NOW(), NOW(), NULL),
-('i8098c1a-f86e-11da-bd1a-00112444be2a', 'Table 13', 'T13', 'a8098c1a-f86e-11da-bd1a-00112444be2a', 'occupied', NOW(), NOW(), NULL),
-('i8098c1a-f86e-11da-bd1a-00112444be2b', 'Table 14', 'T14', 'a8098c1a-f86e-11da-bd1a-00112444be2b', 'available', NOW(), NOW(), NULL),
-('i8098c1a-f86e-11da-bd1a-00112444be2c', 'Table 15', 'T15', 'a8098c1a-f86e-11da-bd1a-00112444be2c', 'reserved', NOW(), NOW(), NULL),
-('i8098c1a-f86e-11da-bd1a-00112444be2d', 'Table 16', 'T16', 'a8098c1a-f86e-11da-bd1a-00112444be2d', 'occupied', NOW(), NOW(), NULL),
-('i8098c1a-f86e-11da-bd1a-00112444be2e', 'Table 17', 'T17', 'a8098c1a-f86e-11da-bd1a-00112444be2e', 'available', NOW(), NOW(), NULL),
-('i8098c1a-f86e-11da-bd1a-00112444be2f', 'Table 18', 'T18', 'a8098c1a-f86e-11da-bd1a-00112444be2f', 'reserved', NOW(), NOW(), NULL),
-('i8098c1a-f86e-11da-bd1a-00112444be30', 'Table 19', 'T19', 'a8098c1a-f86e-11da-bd1a-00112444be30', 'occupied', NOW(), NOW(), NULL),
-('i8098c1a-f86e-11da-bd1a-00112444be31', 'Table 20', 'T20', 'a8098c1a-f86e-11da-bd1a-00112444be31', 'available', NOW(), NOW(), NULL),
-('i8098c1a-f86e-11da-bd1a-00112444be32', 'Table 21', 'T21', 'a8098c1a-f86e-11da-bd1a-00112444be32', 'reserved', NOW(), NOW(), NULL),
-('i8098c1a-f86e-11da-bd1a-00112444be33', 'Table 22', 'T22', 'a8098c1a-f86e-11da-bd1a-00112444be33', 'occupied', NOW(), NOW(), NULL),
-('i8098c1a-f86e-11da-bd1a-00112444be34', 'Table 23', 'T23', 'a8098c1a-f86e-11da-bd1a-00112444be34', 'available', NOW(), NOW(), NULL),
-('i8098c1a-f86e-11da-bd1a-00112444be35', 'Table 24', 'T24', 'a8098c1a-f86e-11da-bd1a-00112444be35', 'reserved', NOW(), NOW(), NULL),
-('i8098c1a-f86e-11da-bd1a-00112444be36', 'Table 25', 'T25', 'a8098c1a-f86e-11da-bd1a-00112444be36', 'occupied', NOW(), NOW(), NULL),
-('i8098c1a-f86e-11da-bd1a-00112444be37', 'Table 26', 'T26', 'a8098c1a-f86e-11da-bd1a-00112444be37', 'available', NOW(), NOW(), NULL),
-('i8098c1a-f86e-11da-bd1a-00112444be38', 'Table 27', 'T27', 'a8098c1a-f86e-11da-bd1a-00112444be38', 'reserved', NOW(), NOW(), NULL),
-('i8098c1a-f86e-11da-bd1a-00112444be39', 'Table 28', 'T28', 'a8098c1a-f86e-11da-bd1a-00112444be39', 'occupied', NOW(), NOW(), NULL),
-('i8098c1a-f86e-11da-bd1a-00112444be3a', 'Table 29', 'T29', 'a8098c1a-f86e-11da-bd1a-00112444be3a', 'available', NOW(), NOW(), NULL),
-('i8098c1a-f86e-11da-bd1a-00112444be3b', 'Table 30', 'T30', 'a8098c1a-f86e-11da-bd1a-00112444be3b', 'reserved', NOW(), NOW(), NULL),
-('i8098c1a-f86e-11da-bd1a-00112444be3c', 'Table 31', 'T31', 'a8098c1a-f86e-11da-bd1a-00112444be3c', 'occupied', NOW(), NOW(), NULL),
-('i8098c1a-f86e-11da-bd1a-00112444be3d', 'Table 32', 'T32', 'a8098c1a-f86e-11da-bd1a-00112444be3d', 'available', NOW(), NOW(), NULL),
-('i8098c1a-f86e-11da-bd1a-00112444be3e', 'Table 33', 'T33', 'a8098c1a-f86e-11da-bd1a-00112444be3e', 'reserved', NOW(), NOW(), NULL),
-('i8098c1a-f86e-11da-bd1a-00112444be3f', 'Table 34', 'T34', 'a8098c1a-f86e-11da-bd1a-00112444be3f', 'occupied', NOW(), NOW(), NULL),
-('i8098c1a-f86e-11da-bd1a-00112444be40', 'Table 35', 'T35', 'a8098c1a-f86e-11da-bd1a-00112444be40', 'available', NOW(), NOW(), NULL),
-('i8098c1a-f86e-11da-bd1a-00112444be41', 'Table 36', 'T36', 'a8098c1a-f86e-11da-bd1a-00112444be41', 'reserved', NOW(), NOW(), NULL),
-('i8098c1a-f86e-11da-bd1a-00112444be42', 'Table 37', 'T37', 'a8098c1a-f86e-11da-bd1a-00112444be42', 'occupied', NOW(), NOW(), NULL),
-('i8098c1a-f86e-11da-bd1a-00112444be43', 'Table 38', 'T38', 'a8098c1a-f86e-11da-bd1a-00112444be43', 'available', NOW(), NOW(), NULL),
-('i8098c1a-f86e-11da-bd1a-00112444be44', 'Table 39', 'T39', 'a8098c1a-f86e-11da-bd1a-00112444be44', 'reserved', NOW(), NOW(), NULL),
-('i8098c1a-f86e-11da-bd1a-00112444be45', 'Table 40', 'T40', 'a8098c1a-f86e-11da-bd1a-00112444be45', 'occupied', NOW(), NOW(), NULL);
