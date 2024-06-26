@@ -284,7 +284,3 @@ JOIN restaurants ON orders.restaurant_id = restaurants.id
 JOIN users ON orders.user_id = users.id
 WHERE orders.is_paid = FALSE;
 ```
-
-## Contributing
-
-Contributions are welcome! Please submit a pull request or open an issue to discuss any changes or enhancements.
